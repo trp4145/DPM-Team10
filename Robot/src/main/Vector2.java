@@ -143,6 +143,15 @@ public class Vector2
     }
     
     /**
+     * Creates a formatted string to represent the vector.
+     * @return a string formatted like "(3.21,30.53)".
+     */
+    public String toString()
+    {
+        return "(" + String.format("%.2f", m_x) + "," + String.format("%.2f", m_y) + ")";
+    }
+    
+    /**
      * Adds two vectors.
      * @param v1 a vector.
      * @param v2 a vector to add to v1.
@@ -195,6 +204,17 @@ public class Vector2
     public static float distance(Vector2 v1, Vector2 v2)
     {
         return Vector2.subtract(v2, v1).magnitude();
+    }
+    
+    /**
+     * Creates a new vector from a set of polar coordinates.
+     * @param angle in degrees from the x-axis.
+     * @param magnitude of the vector.
+     * @return new vector with the specified angle and magnitude.
+     */
+    public static Vector2 fromPolar(float angle, float magnitude)
+    {
+        return Vector2.unitX().scale(magnitude).rotate(angle);
     }
     
     /**
