@@ -1,10 +1,10 @@
 package main;
 
-import lejos.robotics.geometry.Rectangle;
+import lejos.robotics.geometry.*;
 
 /**
  * @author Scott Sewell
- * Contains useful utility methods.
+ * Contains useful utility methods frequently used throughout the code.
  */
 public class Utils
 {
@@ -35,38 +35,76 @@ public class Utils
     }
     
     /**
-     * Checks if a point is contained within a rectangle defined by two opposite corners.
-     * @param point to check if contained.
+     * Creates a rectangle defined by two opposite corners.
      * @param corner1 a corner of the rectangle.
      * @param corner2 the opposite corner of the rectangle.
+     * @return a new rectangle.
+     */
+    public static Rectangle toRect(Vector2 corner1, Vector2 corner2)
+    {
+        return new Rectangle(
+                Math.min(corner1.getX(), corner2.getX()),
+                Math.max(corner1.getY(), corner2.getY()),
+                Math.abs(corner1.getX() - corner2.getX()),
+                Math.abs(corner1.getY() - corner2.getY())
+                );
+    }
+    
+    /**
+     * Expands all sides of a rectangle outwards by a certain amount.
+     * @param rect the rectangle to .
+     * @param padding the amount to push each edge outwards. Can be negative to shrink rectangle.
+     * @return a new padded rectangle.
+     */
+    public static Rectangle padRect(Rectangle rect, float padding)
+    {
+        return new Rectangle(
+                rect.x - padding,
+                rect.y - padding,
+                rect.width + (padding * 2),
+                rect.height + (padding * 2)
+                );
+    }
+    
+    /**
+     * Checks if a point is contained within a rectangle.
+     * @param point the point to check if contained.
+     * @param rect the rectangle to check against.
      * @return true if point is contained.
      */
-    public static boolean rectContains(Vector2 point, Vector2 corner1, Vector2 corner2)
+    public static boolean rectContains(Vector2 point, Rectangle rect)
     {
-        return  Math.min(corner1.getX(), corner2.getX()) < point.getX() && 
-                Math.max(corner1.getX(), corner2.getX()) > point.getX() &&
-                Math.min(corner1.getY(), corner2.getY()) < point.getY() &&
-                Math.max(corner1.getY(), corner2.getY()) > point.getY();
+        return rect.contains(point.getX(), point.getY());
     }
     
     /**
      * Checks if a line intersects a rectangle defined by two opposite corners.
      * @param lineStart the start of the line.
      * @param lineEnd the end of the line.
-     * @param corner1 a corner of the rectangle.
-     * @param corner2 the opposite corner of the rectangle.
+     * @param rect the rectangle to check against.
      * @return true if the given line is intersecting.
      */
-    public static boolean lineIntersectsRect(Vector2 lineStart, Vector2 lineEnd, Vector2 corner1, Vector2 corner2)
+    public static boolean lineIntersectsRect(Vector2 lineStart, Vector2 lineEnd, Rectangle rect)
     {
-        // create a rectangle that can have line intersection tests run against it
-        Rectangle rect = new Rectangle(
-                Math.min(corner1.getX(), corner2.getX()),
-                Math.max(corner1.getY(), corner2.getY()),
-                Math.abs(corner1.getX() - corner2.getX()),
-                Math.abs(corner1.getY() - corner2.getY())
-                );
-        
         return rect.intersectsLine(lineStart.getX(), lineStart.getY(), lineEnd.getX(), lineEnd.getY());
+    }
+    
+    /**
+     * Halts the calling thread for short time.
+     * @param milliseconds how long to wait until continuing.
+     */
+    public static void sleep(long milliseconds)
+    {
+        if (milliseconds > 0)
+        {
+            try
+            {
+                Thread.sleep(milliseconds);
+            }
+            catch (InterruptedException e)
+            {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 }

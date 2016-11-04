@@ -1,6 +1,7 @@
 package main;
 
 import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
@@ -18,6 +19,9 @@ public class Robot
     // motors
     public static final EV3LargeRegulatedMotor  MOTOR_LEFT          = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
     public static final EV3LargeRegulatedMotor  MOTOR_RIGHT         = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+    
+    // screen
+    public static final TextLCD                 SCREEN              = LocalEV3.get().getTextLCD();
     
     // robot dimensions
     public static final float   RADIUS          = 18.0f;                // furthest point on robot from the center of rotation in cm

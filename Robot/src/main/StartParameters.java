@@ -93,4 +93,31 @@ public class StartParameters
     {
         return m_data.get("BTN") == TEAM_NUMBER;
     }
+    
+    /**
+     * Gets the starting of the corner based on whether the robot is building or collecting.
+     * @return the starting corner, where 1 is the bottom left, 2 is the bottom right,
+     * 3 is the top right, and 4 is the top left.
+     */
+    public int getStartCorner()
+    {
+        return isBuilder() ? m_data.get("BSC") : m_data.get("CSC");
+    }
+    
+    /**
+     * @return a new board constructed using the received data.
+     */
+    public Board getBoard()
+    {
+        return new Board(
+                m_data.get("LRZx"),
+                m_data.get("LRZy"),
+                m_data.get("URZx"),
+                m_data.get("URZy"),
+                m_data.get("LGZx"),
+                m_data.get("LGZy"),
+                m_data.get("UGZx"),
+                m_data.get("UGZy")
+                );
+    }
 }
