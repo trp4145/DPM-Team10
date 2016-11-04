@@ -6,7 +6,7 @@ import lejos.hardware.lcd.TextLCD;
 public class Display extends Thread
 {
     // screen update period in ms
-	private static final long UPDATE_PERIOD = 400;
+	private static final int UPDATE_PERIOD = 400;
 
 	private TextLCD m_screen;
 	private Odometer m_odometer;
@@ -46,13 +46,7 @@ public class Display extends Thread
 			}
 
 			// if finished before the next update should occur, wait the remaining time
-            long deltaTime = System.currentTimeMillis() - updateStart;
-			if (deltaTime < UPDATE_PERIOD)
-			{
-				try {
-					Thread.sleep(UPDATE_PERIOD - deltaTime);
-				} catch (InterruptedException e) {}
-			}
+			Utils.sleepToNextPeroid(UPDATE_PERIOD, updateStart);
 		}
 	}
     

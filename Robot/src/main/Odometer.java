@@ -6,7 +6,7 @@ package main;
 public class Odometer extends Thread
 {
 	// odometer update period in ms
-	private static final long UPDATE_PERIOD = 25;
+	private static final int UPDATE_PERIOD = 25;
 	
 	// robot transform
 	private Vector2 m_position;    // position in centimeters
@@ -63,13 +63,7 @@ public class Odometer extends Thread
 			}
 
             // if finished before the next update should occur, wait the remaining time
-			long deltaTime = System.currentTimeMillis() - updateStart;
-			if (deltaTime < UPDATE_PERIOD)
-			{
-				try {
-					Thread.sleep(UPDATE_PERIOD - deltaTime);
-				} catch (InterruptedException e) {}
-			}
+			Utils.sleepToNextPeroid(UPDATE_PERIOD, updateStart);
 		}
 	}
 	

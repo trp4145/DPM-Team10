@@ -107,4 +107,14 @@ public class Utils
             }
         }
     }
+    
+    /**
+     * Halts the thread until the next period begins.
+     * @param period the desired period of the executing loop in milliseconds.
+     * @param periodStart the system time in milliseconds at the start of the current period.
+     */
+    public static void sleepToNextPeroid(int period, long periodStart)
+    {
+        sleep(period - (System.currentTimeMillis() - periodStart));
+    }
 }
