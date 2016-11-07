@@ -7,6 +7,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import lejos.robotics.geometry.Rectangle;
+
 /**
  * @author yazami
  *
@@ -46,47 +48,99 @@ public class UtilsTest {
      */
     @Test
     public void testToRect() {
-        fail("Not yet implemented");
+        
+        float c1x = 0f;
+        float c1y = 10f;
+        float c2x = 10f;
+        float c2y = 0f;
+        Vector2 vec1 = new Vector2(c1x, c1y);
+        Vector2 vec2 = new Vector2(c2x, c2y);
+        
+        Rectangle rect = Utils.toRect(vec1, vec2);
+        
+        float expectedWidth = 10f;
+        float expectedHeight = 10f;
+        
+        assertEquals(expectedWidth, rect.width, 0f);
+        assertEquals(expectedHeight, rect.height, 0f);     
     }
 
     /**
      * Test method for {@link main.Utils#padRect(lejos.robotics.geometry.Rectangle, float)}.
      */
     @Test
-    public void testPadRect() {
-        fail("Not yet implemented");
+    public void testPadRect() 
+    {
+        float c1x = 0f;
+        float c1y = 10f;
+        float c2x = 10f;
+        float c2y = 0f;
+        Vector2 vec1 = new Vector2(c1x, c1y);
+        Vector2 vec2 = new Vector2(c2x, c2y);
+        
+        Rectangle rect = Utils.toRect(vec1, vec2);
+        
+        rect = Utils.padRect(rect, 2f);
+        
+        float expectedWidth = 14f;
+        float expectedHeight = 14f;
+        
+        assertEquals(expectedWidth, rect.width, 0f);
+        assertEquals(expectedHeight, rect.height, 0f);     
     }
 
     /**
      * Test method for {@link main.Utils#rectContains(main.Vector2, lejos.robotics.geometry.Rectangle)}.
      */
     @Test
-    public void testRectContains() {
-        fail("Not yet implemented");
+    public void testRectContains() 
+    {
+        float c1x = 0f;
+        float c1y = 10f;
+        float c2x = 10f;
+        float c2y = 0f;
+        Vector2 corner1 = new Vector2(c1x, c1y);
+        Vector2 corner2 = new Vector2(c2x, c2y);
+        Rectangle rect = Utils.toRect(corner1, corner2);
+        
+        float pointX = 5f;
+        float pointY = 5f;
+        Vector2 point = new Vector2(pointX, pointY);
+        
+        boolean containsPoint = Utils.rectContains(point, rect);
+        boolean expectedContains = true;
+        
+        assertEquals(expectedContains, containsPoint);       
     }
 
     /**
      * Test method for {@link main.Utils#lineIntersectsRect(main.Vector2, main.Vector2, lejos.robotics.geometry.Rectangle)}.
      */
     @Test
-    public void testLineIntersectsRect() {
-        fail("Not yet implemented");
+    public void testLineIntersectsRect() 
+    {
+        float c1x = 0f;
+        float c1y = 10f;
+        float c2x = 10f;
+        float c2y = 0f;
+        Vector2 corner1 = new Vector2(c1x, c1y);
+        Vector2 corner2 = new Vector2(c2x, c2y);
+        Rectangle rect = Utils.toRect(corner1, corner2);
+        
+        float lineStartX = -1f;
+        float lineStartY = 1f;
+        Vector2 lineStart = new Vector2(lineStartX, lineStartY);
+        
+        float lineEndX = 2f;
+        float lineEndY = 1f;
+        Vector2 lineEnd = new Vector2(lineEndX, lineEndY);
+   
+        boolean lineIntersectsRect = Utils.lineIntersectsRect(lineStart, lineEnd, rect);
+        boolean expectedLineIntersects = true;
+        
+        assertEquals(expectedLineIntersects, lineIntersectsRect);
     }
 
-    /**
-     * Test method for {@link main.Utils#sleep(long)}.
-     */
-    @Test
-    public void testSleep() {
-        fail("Not yet implemented");
-    }
 
-    /**
-     * Test method for {@link main.Utils#sleepToNextPeroid(int, long)}.
-     */
-    @Test
-    public void testSleepToNextPeroid() {
-        fail("Not yet implemented");
-    }
 
 }
