@@ -32,7 +32,7 @@ public class Robot
     public static final Vector2 CSR_OFFSET      = new Vector2(0,0);     // the position offset of the right color sensor from the robot center in cm
     
     // dynamic properties 
-    public static final int     ACCELERATION    = 650;      // acceleration of the wheel motors
+    public static final int     ACCELERATION    = 800;      // acceleration of the wheel motors
     public static final int     MOVE_SPEED      = 150;      // maximum wheel rotation speed while moving forwards in deg/sec
     public static final int     ROTATE_SPEED    = 100;      // maximum wheel rotation speed while turning in deg/sec
 }

@@ -1,10 +1,13 @@
 package main;
 
+import lejos.hardware.Button;
+
 public class Main
 {
     private StartParameters m_startParams;
     private Board m_board;
     private Odometer m_odometer;
+    private Driver m_driver;
     
     /**
      * Launches the main program.
@@ -20,6 +23,9 @@ public class Main
      */
     private void launch()
     {
+        // start initialization when ready.
+        Button.waitForAnyPress();
+        
         // wait to progress until start information is received via wifi
         m_startParams = new StartParameters();
         while (!m_startParams.hasRecievedData())
@@ -31,7 +37,10 @@ public class Main
         // get the board
         m_board = m_startParams.getBoard();
         
+        // activate the odometer
         Odometer odometer = new Odometer();
         odometer.start();
+        
+        m_driver = new Driver(odometer);
     }
 }
