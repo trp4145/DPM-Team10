@@ -1,6 +1,3 @@
-/**
- * 
- */
 package main;
 
 import static org.junit.Assert.*;
@@ -11,8 +8,8 @@ import org.junit.Test;
  * @author yazami
  *
  */
-public class Vector2Test {
-
+public class Vector2Test
+{
     /**
      * Tests construction of vector and retrieval of values. <br>
      * Test method for {@link main.Vector2#Vector2(float, float)}.

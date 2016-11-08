@@ -1,6 +1,3 @@
-/**
- * 
- */
 package main;
 
 import static org.junit.Assert.*;
@@ -13,8 +10,8 @@ import lejos.robotics.geometry.Rectangle;
  * @author yazami
  *
  */
-public class UtilsTest {
-
+public class UtilsTest
+{
     /**
      * Test method for {@link main.Utils#clamp(float, float, float)}.
      */
@@ -47,22 +44,16 @@ public class UtilsTest {
      * Test method for {@link main.Utils#toRect(main.Vector2, main.Vector2)}.
      */
     @Test
-    public void testToRect() {
+    public void testToRect()
+    {
+        Vector2 corner1 = new Vector2(-4, 2);
+        Vector2 corner2 = new Vector2(10, 10);
+        Rectangle rect = Utils.toRect(corner1, corner2);
         
-        float c1x = 0f;
-        float c1y = 10f;
-        float c2x = 10f;
-        float c2y = 0f;
-        Vector2 vec1 = new Vector2(c1x, c1y);
-        Vector2 vec2 = new Vector2(c2x, c2y);
-        
-        Rectangle rect = Utils.toRect(vec1, vec2);
-        
-        float expectedWidth = 10f;
-        float expectedHeight = 10f;
-        
-        assertEquals(expectedWidth, rect.width, 0f);
-        assertEquals(expectedHeight, rect.height, 0f);     
+        assertEquals(-4f, rect.x, 0f);
+        assertEquals(2f, rect.y, 0f);
+        assertEquals(14f, rect.width, 0f);
+        assertEquals(8f, rect.height, 0f);
     }
 
     /**
@@ -71,22 +62,18 @@ public class UtilsTest {
     @Test
     public void testPadRect() 
     {
-        float c1x = 0f;
-        float c1y = 10f;
-        float c2x = 10f;
-        float c2y = 0f;
-        Vector2 vec1 = new Vector2(c1x, c1y);
-        Vector2 vec2 = new Vector2(c2x, c2y);
+        Vector2 corner1 = new Vector2(5, 5);
+        Vector2 corner2 = new Vector2(10, 10);
+        Rectangle rect = Utils.toRect(corner1, corner2);
         
-        Rectangle rect = Utils.toRect(vec1, vec2);
-        
-        rect = Utils.padRect(rect, 2f);
-        
-        float expectedWidth = 14f;
-        float expectedHeight = 14f;
-        
-        assertEquals(expectedWidth, rect.width, 0f);
-        assertEquals(expectedHeight, rect.height, 0f);     
+        Rectangle paddedRect = Utils.padRect(rect, 2f);
+
+        assertEquals(rect.getCenterX(), paddedRect.getCenterX(), 0f);
+        assertEquals(rect.getCenterY(), paddedRect.getCenterY(), 0f);
+        assertEquals(3f, paddedRect.getMinX(), 0f);
+        assertEquals(3f, paddedRect.getMinY(), 0f);
+        assertEquals(12f, paddedRect.getMaxX(), 0f);
+        assertEquals(12f, paddedRect.getMaxY(), 0f);
     }
 
     /**
@@ -95,17 +82,11 @@ public class UtilsTest {
     @Test
     public void testRectContains() 
     {
-        float c1x = 0f;
-        float c1y = 10f;
-        float c2x = 10f;
-        float c2y = 0f;
-        Vector2 corner1 = new Vector2(c1x, c1y);
-        Vector2 corner2 = new Vector2(c2x, c2y);
+        Vector2 corner1 = new Vector2(0, 0);
+        Vector2 corner2 = new Vector2(10, 10);
         Rectangle rect = Utils.toRect(corner1, corner2);
         
-        float pointX = 5f;
-        float pointY = 5f;
-        Vector2 point = new Vector2(pointX, pointY);
+        Vector2 point = new Vector2(5f, 5f);
         
         boolean containsPoint = Utils.rectContains(point, rect);
         boolean expectedContains = true;
@@ -140,7 +121,4 @@ public class UtilsTest {
         
         assertEquals(expectedLineIntersects, lineIntersectsRect);
     }
-
-
-
 }

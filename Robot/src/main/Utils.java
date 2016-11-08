@@ -44,7 +44,7 @@ public class Utils
     {
         return new Rectangle(
                 Math.min(corner1.getX(), corner2.getX()),
-                Math.max(corner1.getY(), corner2.getY()),
+                Math.min(corner1.getY(), corner2.getY()),
                 Math.abs(corner1.getX() - corner2.getX()),
                 Math.abs(corner1.getY() - corner2.getY())
                 );
@@ -74,7 +74,7 @@ public class Utils
      */
     public static boolean rectContains(Vector2 point, Rectangle rect)
     {
-        return rect.contains(point.getX(), point.getY());
+        return rect.contains(new Point(point.getX(), point.getY()));
     }
     
     /**

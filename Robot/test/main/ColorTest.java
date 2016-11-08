@@ -1,6 +1,3 @@
-/**
- * 
- */
 package main;
 
 import static org.junit.Assert.*;
@@ -13,8 +10,8 @@ import org.junit.Test;
  * @author yazami
  *
  */
-public class ColorTest {
-
+public class ColorTest
+{
     /**
      * Test method for {@link main.Color#black()}.
      */
