@@ -3,8 +3,9 @@ package main;
 import java.security.InvalidParameterException;
 
 /**
- * @author Scott Sewell
  * Stores a color in the HSV format. H,S,V vales are within [0,1]
+ * 
+ * @author Scott Sewell
  */
 public class Color
 {
