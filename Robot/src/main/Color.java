@@ -57,7 +57,7 @@ public class Color
      * @param r the red component [0,1]
      * @param g the green component [0,1]
      * @param b the blue component [0,1]
-     * @return
+     * @return a new HSV color.
      */
     public Color fromRGB(float r, float g, float b)
     {

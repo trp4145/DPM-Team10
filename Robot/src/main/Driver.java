@@ -4,6 +4,8 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 /**
  * Contains the methods responsible for moving the robot.
+ * 
+ * @author Scott Sewell
  */
 public class Driver
 {

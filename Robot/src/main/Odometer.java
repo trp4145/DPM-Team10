@@ -2,6 +2,8 @@ package main;
 
 /**
  * Keeps track of the robot's assumed position by using the wheel movements.
+ * 
+ * @author Scott Sewell
  */
 public class Odometer extends Thread
 {

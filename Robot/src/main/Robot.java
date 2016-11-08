@@ -8,6 +8,8 @@ import lejos.hardware.sensor.EV3UltrasonicSensor;
 
 /**
  * Contains constants related to robot hardware.
+ * 
+ * @author Scott Sewell
  */
 public class Robot
 {

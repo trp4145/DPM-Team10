@@ -4,6 +4,8 @@ import lejos.robotics.geometry.*;
 
 /**
  * Keeps track of properties of the board being driven on.
+ * 
+ * @author Scott Sewell
  */
 public class Board
 {

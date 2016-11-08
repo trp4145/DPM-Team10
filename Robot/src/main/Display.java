@@ -3,6 +3,11 @@ package main;
 import lejos.hardware.Button;
 import lejos.hardware.lcd.TextLCD;
 
+/**
+ * Handles display output and user interface.
+ * 
+ * @author Scott Sewell
+ */
 public class Display extends Thread
 {
     // screen update period in ms

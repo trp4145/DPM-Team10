@@ -2,6 +2,8 @@ package main;
 
 /**
  * Stores information about encountered blocks.
+ * 
+ * @author Scott Sewell
  */
 public class Block
 {

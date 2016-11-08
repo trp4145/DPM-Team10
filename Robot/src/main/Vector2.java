@@ -3,8 +3,9 @@ package main;
 import java.security.InvalidParameterException;
 
 /**
- * @author Scott Sewell
  * Represents a 2d vector.
+ * 
+ * @author Scott Sewell
  */
 public class Vector2
 {

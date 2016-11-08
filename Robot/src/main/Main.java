@@ -2,6 +2,11 @@ package main;
 
 import lejos.hardware.Button;
 
+/**
+ * The main class that manages most of the decision making aspects of the robot.
+ *
+ * @author Scott Sewell
+ */
 public class Main
 {
     private StartParameters m_startParams;

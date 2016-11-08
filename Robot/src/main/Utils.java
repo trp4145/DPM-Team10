@@ -3,8 +3,9 @@ package main;
 import lejos.robotics.geometry.*;
 
 /**
- * @author Scott Sewell
  * Contains useful utility methods frequently used throughout the code.
+ * 
+ * @author Scott Sewell
  */
 public class Utils
 {
