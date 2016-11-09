@@ -14,9 +14,9 @@ public class Main
     private StartParameters m_startParams;
     private Board m_board;
     private Odometer m_odometer;
+    private UltrasonicPoller m_usPoller;
     private Driver m_driver;
     private Display m_display;
-    
     /**
      * Launches the main program.
      */
@@ -34,7 +34,8 @@ public class Main
         // initilize
         m_odometer = new Odometer();
         m_display = new Display(m_odometer);
-        m_driver = new Driver(m_odometer);
+        m_usPoller = new UltrasonicPoller();
+        m_driver = new Driver(m_odometer, m_usPoller);
         
         // start initialization when ready.
         m_display.printString("Press a button!");
@@ -54,20 +55,26 @@ public class Main
 
         // start threads
         m_odometer.start();
+        m_usPoller.start();
         m_display.start();
         
         List<Vector2> waypoints = new ArrayList<Vector2>();
         waypoints.add(new Vector2(60, 0));
         waypoints.add(new Vector2(60, -60));
-        waypoints.add(new Vector2(30, -60));
+        waypoints.add(new Vector2(0, -60));
         waypoints.add(new Vector2(0, 0));
-        
+
+        /*//travelling to destination 
         while (waypoints.size() > 0)
         {
             m_driver.travelTo(waypoints.get(0));
             while (m_driver.isTravelling() && !m_driver.isNearDestination()) { }
             waypoints.remove(0);
         }
+        */
+ 
+        m_driver.turnAndUSPoll(360);
+                
         
         // finish
         System.exit(0);
