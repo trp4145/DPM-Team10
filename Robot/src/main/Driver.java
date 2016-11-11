@@ -18,17 +18,15 @@ public class Driver
     private EV3LargeRegulatedMotor m_leftMotor;
     private EV3LargeRegulatedMotor m_rightMotor;
     private Odometer m_odometer;
-    private UltrasonicPoller m_usPoller;
     
     private Vector2 m_destination;
     
     /**
      * Constructor.
      */
-    public Driver(Odometer odometer, UltrasonicPoller usPoller)
+    public Driver(Odometer odometer)
     {
         m_odometer = odometer;
-        m_usPoller = usPoller;
         
         m_leftMotor = Robot.MOTOR_LEFT;
         m_rightMotor = Robot.MOTOR_RIGHT;
@@ -92,10 +90,8 @@ public class Driver
     
     //Testing: 	complete a rotation of a certain magnitude
     //			output the distances polled while turning to a txt file 
-    public void turnAndUSPoll(float angle)
+    public void turn(float angle)
     {
-    	//list for sampled distances 
-    	List<Float> distances = new ArrayList<Float>();
     	
     	// set rotating speeds
     	m_leftMotor.setSpeed(Robot.ROTATE_SPEED);
@@ -103,32 +99,7 @@ public class Driver
 		
 		//rotate the motors to complete the motion 
 		m_leftMotor.rotate(convertAngle(Robot.WHEEL_RADIUS, angle), true);
-        m_rightMotor.rotate(-convertAngle(Robot.WHEEL_RADIUS, angle), true);
-        
-        long updateStart;
-        
-        while(m_leftMotor.isMoving() || m_rightMotor.isMoving() )
-        {
-        	updateStart = System.currentTimeMillis();
-        	distances.add(m_usPoller.getDistance());
-        	Utils.sleepToNextPeroid(SWEEP_POLLING_PERIOD, updateStart);
-        }
-        
-        //Print output on to a txt file 
-        String filename = "UltrasonicSensor.txt";
-        File file = new File(filename);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename)))
-        {
-        	if (!file.exists()){
-        		file.createNewFile();
-        	}
-        	for (int i = 0; i< distances.size(); i++)
-        	{
-        		writer.write(i+"\t"+String.format("%.1f", distances.get(i)));
-        	}
-        }catch (IOException e){
-        	System.out.println(e.getMessage());
-        }  
+        m_rightMotor.rotate(-convertAngle(Robot.WHEEL_RADIUS, angle), false);  
     }
     
     public void stop()

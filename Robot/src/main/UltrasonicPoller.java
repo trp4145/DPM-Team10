@@ -44,7 +44,7 @@ public class UltrasonicPoller extends Thread
 			m_sensor.fetchSample(collectedSample, 0);
 			synchronized (m_lock)
 			{
-				m_distance = Utils.clamp(collectedSample[0], 0, MAX_RANGE);
+				m_distance = Utils.clamp(collectedSample[0]*100, 0, MAX_RANGE);
 			}
 			
 			Utils.sleepToNextPeroid(UPDATE_PERIOD, updateStart); 	

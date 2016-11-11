@@ -30,7 +30,7 @@ public class LineDetector extends Thread
 	
 	/**
 	 * Main loop to detect brightness 
-	 */
+	 */	
 	public void run()
 	{
 		long updateStart;

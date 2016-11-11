@@ -14,12 +14,12 @@ import lejos.hardware.sensor.EV3UltrasonicSensor;
 public class Robot
 {
     // sensors
-    public static final EV3UltrasonicSensor     ULTRASOUND_MAIN     = new EV3UltrasonicSensor(LocalEV3.get().getPort("S1"));
-    public static final EV3ColorSensor          COLOR_LEFT          = new EV3ColorSensor(LocalEV3.get().getPort("S3"));
+    public static final EV3UltrasonicSensor     ULTRASOUND_MAIN     = new EV3UltrasonicSensor(LocalEV3.get().getPort("S3"));
+    public static final EV3ColorSensor          COLOR_LEFT          = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
     public static final EV3ColorSensor          COLOR_RIGHT         = new EV3ColorSensor(LocalEV3.get().getPort("S4"));
 
     // motors
-    public static final EV3LargeRegulatedMotor  MOTOR_LEFT          = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
+    public static final EV3LargeRegulatedMotor  MOTOR_LEFT          = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
     public static final EV3LargeRegulatedMotor  MOTOR_RIGHT         = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
     
     // screen
