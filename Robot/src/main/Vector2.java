@@ -144,6 +144,16 @@ public class Vector2
     }
     
     /**
+     * Calculates the angle between the vectors (x,y) and (0,y)
+     * where x and y are the components of the 
+     * @return minimum positive angle from the y-axis
+     */
+    public float angleFromY()
+    {
+    	return (float)Math.abs(Math.toDegrees(Math.atan(m_y / m_x)));
+    }
+    
+    /**
      * Creates a formatted string to represent the vector.
      * @return a string formatted like "(3.21,30.53)".
      */

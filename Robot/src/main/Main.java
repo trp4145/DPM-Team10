@@ -70,34 +70,18 @@ public class Main
         
         List<Vector2> waypoints = new ArrayList<Vector2>();
         waypoints.add(new Vector2(60, 0));
-//        waypoints.add(new Vector2(60, -60));
-//        waypoints.add(new Vector2(0, -60));
-//        waypoints.add(new Vector2(0, 0));
+        waypoints.add(new Vector2(60, -60));
+        waypoints.add(new Vector2(0, -60));
+        waypoints.add(new Vector2(0, 0));
 
-        //travelling to destination
-        
-      //Print output on to a txt file 
-        String filename = "LineDetector.txt";
-        File file = new File(filename);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename)))
+        //traveling to destination
+        while (waypoints.size() > 0)
         {
-        	if (!file.exists()){
-        		file.createNewFile();
-        	}        
+        	m_driver.travelTo(waypoints.get(0));
+            while (m_driver.isTravelling() && !m_driver.isNearDestination()) {}      
+            waypoints.remove(0);
+        }
         
-	        while (waypoints.size() > 0)
-	        {
-	            m_driver.travelTo(waypoints.get(0));
-	            while (m_driver.isTravelling() && !m_driver.isNearDestination()) { 
-	            	writer.write(String.format("%.1f", m_lineDetector.getBrightness())+"\n");
-	            }
-	            waypoints.remove(0);
-	        }
-	        
-        }catch (IOException e){
-        	System.out.println(e.getMessage());
-        } 
-                
         // finish
         System.exit(0);
     }
