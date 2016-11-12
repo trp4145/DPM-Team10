@@ -1,7 +1,5 @@
 package main;
 
-import lejos.hardware.Sound;
-
 /**
  * Contains the methods responsible for correcting the odometer
  * based on the inputs received by two light sensors 
@@ -16,10 +14,7 @@ public class OdometryCorrection extends Thread
 	private Odometer m_odometer;
 	private LineDetector m_rightLineDetector;
 	private LineDetector m_leftLineDetector;
-	
-	
-	 
-	
+
 	
 	/**
 	 * Constructor 
@@ -57,7 +52,6 @@ public class OdometryCorrection extends Thread
 			{
 				odometerPos = m_odometer.getPosition();
 				odometerOrientation = m_odometer.getTheta();
-				
 				//calculate the position of the light sensor on the board
 				posCSR = odometerPos.add(basisRobotToBoard(odometerOrientation, Robot.CSR_OFFSET));
 				//correct odometer
@@ -122,7 +116,7 @@ public class OdometryCorrection extends Thread
 		}
 		else
 		{
-			//correct y
+			//correct Y
 			return new Vector2(odometerPos.getX(),newPos.getY());
 		}
 	}
