@@ -5,8 +5,8 @@ import java.util.HashMap;
 import wifi.WifiConnection;
 
 /**
- * Responsible for interfacing with the wifi connection and parsing the received data into a more
- * usable format for our use.
+ * Responsible for interfacing with the wifi connection and parsing the received
+ * data into a more usable format for our use.
  * 
  * @author Scott Sewell
  */
@@ -17,18 +17,16 @@ public class StartParameters
     // our project team number
     private static final int TEAM_NUMBER = 10;
 
-    
     private HashMap<String,Integer> m_data;
-    
-    
+
     /**
      * Constructor.
      */
     public StartParameters() {}
-    
+
     /**
-     * Use mock wifi data to work around the need for a server
-     * to allow for quick testing.
+     * Use mock wifi data to work around the need for a server to allow for
+     * quick testing.
      */
     public void useTestData()
     {

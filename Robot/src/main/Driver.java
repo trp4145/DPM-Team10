@@ -13,7 +13,6 @@ public class Driver
 {
     // how much error is allowed between the odometer position and destination position.
     private static final float POSITION_TOLERANCE = 2.0f;
-    private static final int SWEEP_POLLING_PERIOD = 120; 
     
     private EV3LargeRegulatedMotor m_leftMotor;
     private EV3LargeRegulatedMotor m_rightMotor;
@@ -54,9 +53,7 @@ public class Driver
     	turnTo(Vector2.subtract(destination, currentLocation).angle());
 
     	// a short pause to allow time for distance sensor to get some values
-        try {
-            Thread.sleep(350);
-        } catch (InterruptedException e) { }
+    	Utils.sleep(350);
         
     	// calculate the distance to the new location
     	float distance = Vector2.distance(currentLocation, destination); 
@@ -88,20 +85,25 @@ public class Driver
 		m_rightMotor.rotate(convertAngle(Robot.WHEEL_RADIUS, bearing), false);
     }
     
-    //Testing: 	complete a rotation of a certain magnitude
-    //			output the distances polled while turning to a txt file 
+    /**
+     * Turns the robot a specific amount relative to the current facing.
+     * The thread is blocked until the action is complete.
+     * @param angle The angle in degrees the robot will turn.
+     */
     public void turn(float angle)
     {
-    	
     	// set rotating speeds
     	m_leftMotor.setSpeed(Robot.ROTATE_SPEED);
 		m_rightMotor.setSpeed(Robot.ROTATE_SPEED);
 		
-		//rotate the motors to complete the motion 
-		m_leftMotor.rotate(convertAngle(Robot.WHEEL_RADIUS, angle), true);
-        m_rightMotor.rotate(-convertAngle(Robot.WHEEL_RADIUS, angle), false);  
+		// rotate the motors to complete the motion
+		m_leftMotor.rotate(-convertAngle(Robot.WHEEL_RADIUS, angle), true);
+        m_rightMotor.rotate(convertAngle(Robot.WHEEL_RADIUS, angle), false);  
     }
     
+    /**
+     * Immediately stops the robot's motion.
+     */
     public void stop()
     {
         m_leftMotor.stop(true);
