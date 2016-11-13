@@ -2,6 +2,7 @@ package main;
 
 import java.io.IOException;
 import java.util.HashMap;
+
 import wifi.WifiConnection;
 
 /**
@@ -13,7 +14,7 @@ import wifi.WifiConnection;
 public class StartParameters
 {
     // the IP address of the computer running the server application
-    private static final String SERVER_IP = "192.168.2.6";
+    private static final String SERVER_IP = "192.168.2.26";
     // our project team number
     private static final int TEAM_NUMBER = 10;
 
@@ -68,14 +69,14 @@ public class StartParameters
         // if successfully connected, read and print the data received from the server
         if (connection != null)
         {
-            HashMap<String,Integer> data = connection.StartData;
-            if (data == null)
+            m_data = connection.StartData;
+            if (m_data == null)
             {
                 System.out.println("Failed to read transmission");
             }
             else
             {
-                System.out.println("Transmission read:\n" + data.toString());
+                System.out.println("Transmission read:\n" + m_data.toString());
             }
         }
     }
