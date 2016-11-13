@@ -1,5 +1,9 @@
 package main;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import lejos.hardware.Button;
@@ -11,12 +15,16 @@ import lejos.hardware.Button;
  */
 public class Main
 {
+	private static final int US_POLLER_PERIOD = 120;
+	private static final int COLOR_POLLER_PERIOD = 30;
+	
     private StartParameters m_startParams;
     private Board m_board;
     private Odometer m_odometer;
+    private UltrasonicPoller m_usPoller;
+    private LineDetector m_lineDetector;
     private Driver m_driver;
     private Display m_display;
-    
     /**
      * Launches the main program.
      */
@@ -34,6 +42,8 @@ public class Main
         // initilize
         m_odometer = new Odometer();
         m_display = new Display(m_odometer);
+        m_usPoller = new UltrasonicPoller();
+        m_lineDetector = new LineDetector(Robot.COLOR_LEFT);
         m_driver = new Driver(m_odometer);
         
         // start initialization when ready.
@@ -54,18 +64,21 @@ public class Main
 
         // start threads
         m_odometer.start();
+        m_usPoller.start();
+        m_lineDetector.start();
         m_display.start();
         
         List<Vector2> waypoints = new ArrayList<Vector2>();
         waypoints.add(new Vector2(60, 0));
         waypoints.add(new Vector2(60, -60));
-        waypoints.add(new Vector2(30, -60));
+        waypoints.add(new Vector2(0, -60));
         waypoints.add(new Vector2(0, 0));
-        
+
+        //traveling to destination
         while (waypoints.size() > 0)
         {
-            m_driver.travelTo(waypoints.get(0));
-            while (m_driver.isTravelling() && !m_driver.isNearDestination()) { }
+        	m_driver.travelTo(waypoints.get(0));
+            while (m_driver.isTravelling() && !m_driver.isNearDestination()) {}      
             waypoints.remove(0);
         }
         
