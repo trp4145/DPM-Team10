@@ -14,7 +14,7 @@ import lejos.robotics.SampleProvider;
 public class UltrasonicPoller extends Thread
 {
     // period at which the sensor is polling in ms
-    private static final int UPDATE_PERIOD = 20;
+    private static final int UPDATE_PERIOD = 25;
     // maximum distance that distance measured is clamped under in cm
     private static final int MAX_RANGE = 200;
     // how many past sensor values are stored
@@ -69,7 +69,7 @@ public class UltrasonicPoller extends Thread
 
             // compute filtered distance
             float weightedDistance = 0;
-            if (m_buffer.size() == 0)
+            if (m_buffer.size() > 0)
             {
                 for (float distance : m_buffer)
                 {

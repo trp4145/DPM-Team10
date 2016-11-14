@@ -2,6 +2,7 @@ package main;
 
 import java.util.*;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 
 /**
  * The main class that manages most of the decision making aspects of the robot.
@@ -10,7 +11,9 @@ import lejos.hardware.Button;
  */
 public class Main
 {
-
+    // how far the robot sees while localizing
+    private static final float LOCALIZATION_DISTANCE = 40;
+    
     private StartParameters m_startParams;
     private Board m_board;
     private Odometer m_odometer;
@@ -61,13 +64,15 @@ public class Main
         m_board = m_startParams.getBoard();
 
         // start threads
-        m_odometer.start();
-        m_odoCorrection.start();
         m_usMain.start();
+        m_usUpper.start();
+        m_odometer.start();
         m_display.start();
         
         // localize
         localize(true);
+        
+        m_odoCorrection.start();
 
         List<Vector2> waypoints = new ArrayList<Vector2>();
         waypoints.add(new Vector2(60, 0));
@@ -110,19 +115,20 @@ public class Main
         m_driver.turn(-360, Robot.LOCALIZATION_SPEED, false);
         
         // turn until wall is seen
-        while (m_usMain.getFilteredDistance() > 40) {}
-        Utils.sleep(100);
+        while (m_usMain.getFilteredDistance() > LOCALIZATION_DISTANCE) {}
+        Utils.sleep(500);
+
         // continue turning until no wall is seen
-        while (m_usMain.getFilteredDistance() < 40) {}
-        
+        while (m_usMain.getFilteredDistance() < LOCALIZATION_DISTANCE) {}
+
         // store the angle of the first wall and start turning the other way
         m_driver.stop();
         angleA = m_odometer.getTheta();
         m_driver.turn(360, Robot.LOCALIZATION_SPEED, false);
 
         // turn back facing wall until no wall is seen
-        Utils.sleep(100);
-        while (m_usMain.getFilteredDistance() < 40) {}
+        Utils.sleep(2000);
+        while (m_usMain.getFilteredDistance() < LOCALIZATION_DISTANCE) {}
         
         // store the angle of the other wall
         m_driver.stop();
@@ -142,7 +148,7 @@ public class Main
         
         // account for the starting corner the robot is in
         int corner =  m_startParams.getStartCorner();
-        float cornerAngOffset = 90 * corner;        
+        float cornerAngOffset = 90 * corner;
         Vector2 cornerPos = new Vector2(
                             corner == 2 || corner == 3 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0,
                             corner == 3 || corner == 4 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0
@@ -155,7 +161,8 @@ public class Main
         // if applicable, move to the nearest line intersection
         if (moveToOrigin)
         {
-            m_driver.travelTo(cornerPos);
+            m_driver.travelTo(Board.getNearestIntersection(m_odometer.getPosition()));
+            while (m_driver.isTravelling()) {}
             m_driver.turnTo(cornerAngOffset - 90);
         }
     }

@@ -11,7 +11,7 @@ import lejos.hardware.Sound;
 public class OdometryCorrection extends Thread
 {
     // how much the corrected values override the original values
-    private static final float CORRECTION_WEIGHT = 0.5f;
+    private static final float CORRECTION_WEIGHT = 0.4f;
 
     private Odometer m_odometer;
     private LineDetector m_rightLineDetector;
