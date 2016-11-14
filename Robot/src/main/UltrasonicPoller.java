@@ -2,6 +2,7 @@ package main;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.SampleProvider;
 
 /**
@@ -30,9 +31,9 @@ public class UltrasonicPoller extends Thread
     /**
      * Constructor.
      */
-    public UltrasonicPoller()
+    public UltrasonicPoller(EV3UltrasonicSensor sensor)
     {
-        m_sensor = Robot.ULTRASOUND_MAIN.getMode("Distance");
+        m_sensor = sensor.getMode("Distance");
         m_buffer = new LinkedList<Float>();
         m_lock = new Object();
     }

@@ -32,13 +32,14 @@ public class Robot
     public static final float   RADIUS          = 20.0f;                    // farthest point on robot from the center of rotation in cm
     public static final float   WHEEL_RADIUS    = 2.13f;                    // radius of wheels in cm
     public static final float   WHEEL_TRACK     = 16.0f;                    // distance between wheels in cm
-    public static final Vector2 US_MAIN_OFFSET  = new Vector2(0,4);         // the position offset of the main ultrasound sensor from the robot center in cm
-    public static final Vector2 US_UPPER_OFFSET = new Vector2(8,-4);        // the position offset of the upper ultrasound sensor from the robot center in cm
-    public static final Vector2 CSL_OFFSET      = new Vector2(-10,-10);     // the position offset of the left color sensor from the robot center in cm
-    public static final Vector2 CSR_OFFSET      = new Vector2(10,-10);      // the position offset of the right color sensor from the robot center in cm
+    public static final Vector2 US_MAIN_OFFSET  = new Vector2(4,0);         // the position offset of the main ultrasound sensor from the robot center in cm
+    public static final Vector2 US_UPPER_OFFSET = new Vector2(-4,8);        // the position offset of the upper ultrasound sensor from the robot center in cm
+    public static final Vector2 CSL_OFFSET      = new Vector2(-10,10);      // the position offset of the left color sensor from the robot center in cm
+    public static final Vector2 CSR_OFFSET      = new Vector2(-10,-10);     // the position offset of the right color sensor from the robot center in cm
     
     // dynamic properties 
-    public static final int     ACCELERATION    = 1200;     // acceleration of the wheel motors
-    public static final int     MOVE_SPEED      = 150;      // maximum wheel rotation speed while moving forwards in deg/sec
-    public static final int     ROTATE_SPEED    = 100;      // maximum wheel rotation speed while turning in deg/sec
+    public static final int     ACCELERATION        = 1200;     // acceleration of the wheel motors
+    public static final int     MOVE_SPEED          = 150;      // maximum wheel rotation speed while moving forwards in deg/sec
+    public static final int     ROTATE_SPEED        = 100;      // maximum wheel rotation speed while turning in deg/sec
+    public static final int     LOCALIZATION_SPEED  = 50;       // maximum wheel rotation speed while localizing in deg/sec
 }

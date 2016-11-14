@@ -10,7 +10,7 @@ import lejos.robotics.geometry.*;
 public class Board
 {
     // the number of tiles along one side of the board
-    public static final int BOARD_TILE_COUNT = 12;
+    public static final int TILE_COUNT = 12;
     // the width of a board tile in cm
     public static final float TILE_SIZE = 30.4f;
     // the distance the robot tries to leave between itself and the walls to
@@ -48,7 +48,7 @@ public class Board
     public Board(int lrzx, int lrzy, int urzx, int urzy, int lgzx, int lgzy, int ugzx, int ugzy)
     {
         Vector2 wallLowerCorner = Vector2.one().scale(-TILE_SIZE);
-        Vector2 wallUpperCorner = Vector2.one().scale(TILE_SIZE * (BOARD_TILE_COUNT - 1));
+        Vector2 wallUpperCorner = Vector2.one().scale(TILE_SIZE * (TILE_COUNT - 1));
         m_board = Utils.toRect(wallLowerCorner, wallUpperCorner);
 
         Vector2 dumpLowerCorner = new Vector2(lrzx, lrzy).scale(TILE_SIZE);
@@ -143,7 +143,10 @@ public class Board
     {
         float x = (float) Math.floor((position.getX() / Board.TILE_SIZE) + 0.5f);
         float y = (float) Math.floor((position.getY() / Board.TILE_SIZE) + 0.5f);
-        return new Vector2(x, y).scale(Board.TILE_SIZE);
+        return new Vector2(
+                Utils.clamp(x, 0, Board.TILE_COUNT - 2),
+                Utils.clamp(y, 0, Board.TILE_COUNT - 2)
+                ).scale(Board.TILE_SIZE);
     }
 
     /**
