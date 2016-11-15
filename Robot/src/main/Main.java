@@ -127,7 +127,7 @@ public class Main
         m_driver.turn(360, Robot.LOCALIZATION_SPEED, false);
 
         // turn back facing wall until no wall is seen
-        Utils.sleep(2000);
+        Utils.sleep(1200);
         while (m_usMain.getFilteredDistance() < LOCALIZATION_DISTANCE) {}
         
         // store the angle of the other wall
@@ -157,6 +157,8 @@ public class Main
         // update the odometer
         m_odometer.setTheta(m_odometer.getTheta() + cornerAngOffset);
         m_odometer.setPosition(cornerPos.add(startPos.rotate(cornerAngOffset)));
+        
+        Sound.beepSequenceUp();
         
         // if applicable, move to the nearest line intersection
         if (moveToOrigin)
