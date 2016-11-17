@@ -20,13 +20,17 @@ public class Color
     /**
      * Empty Constructor.
      */
-    public Color() { }
-    
+    public Color() {}
+
     /**
      * Constructor. Values are clamped to [0,1]
-     * @param h the hue (what color).
-     * @param s the saturation (how intense that color is).
-     * @param v the value (how bright that color is).
+     * 
+     * @param h
+     *            the hue (what color).
+     * @param s
+     *            the saturation (how intense that color is).
+     * @param v
+     *            the value (how bright that color is).
      */
     public Color(float h, float s, float v)
     {
@@ -34,10 +38,12 @@ public class Color
         setS(s);
         setV(v);
     }
-    
+
     /**
      * Clone constructor.
-     * @param c color
+     * 
+     * @param c
+     *            a non-null color to clone.
      */
     public Color(Color c)
     {
@@ -45,7 +51,7 @@ public class Color
         {
             m_h = c.getH();
             m_s = c.getS();
-            m_v = c.getV();  
+            m_v = c.getV();
         }
         else
         {
@@ -55,9 +61,13 @@ public class Color
     
     /**
      * Converts a color from the RGB color space into an HSV color space.
-     * @param r the red component [0,1]
-     * @param g the green component [0,1]
-     * @param b the blue component [0,1]
+     * 
+     * @param r
+     *            the red component [0,1]
+     * @param g
+     *            the green component [0,1]
+     * @param b
+     *            the blue component [0,1]
      * @return a new HSV color.
      */
     public Color fromRGB(float r, float g, float b)
@@ -69,11 +79,15 @@ public class Color
     }
     
     /**
-     * Linearly interpolates hsv values of c1 to those of c2
-     * using fac as the blend factor.
-     * @param c1 the color blended from.
-     * @param c2 the color blended towards.
-     * @param fac blend factor with range [0,1].
+     * Linearly interpolates hsv values of c1 to those of c2 using fac as the
+     * blend factor.
+     * 
+     * @param c1
+     *            the color blended from.
+     * @param c2
+     *            the color blended towards.
+     * @param fac
+     *            blend factor with range [0,1].
      * @return A new color blended between the input colors.
      */
     public static Color lerp(Color c1, Color c2, float fac)
@@ -85,7 +99,7 @@ public class Color
                     c1.getV() * (1 - fac) + c2.getV() * fac
                 );
     }
-    
+
     /**
      * @return the hue.
      */
@@ -109,10 +123,12 @@ public class Color
     {
         return m_v;
     }
-    
+
     /**
      * Sets the hue.
-     * @param h the new hue value.
+     * 
+     * @param h
+     *            the new hue value.
      */
     public void setH(float h)
     {
@@ -121,7 +137,9 @@ public class Color
 
     /**
      * Sets the saturation.
-     * @param s the new saturation value.
+     * 
+     * @param s
+     *            the new saturation value.
      */
     public void setS(float s)
     {
@@ -130,7 +148,9 @@ public class Color
 
     /**
      * Sets the brightness.
-     * @param v the new brightness value.
+     * 
+     * @param v
+     *            the new brightness value.
      */
     public void setV(float v)
     {

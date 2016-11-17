@@ -6,8 +6,8 @@ import java.util.HashMap;
 import wifi.WifiConnection;
 
 /**
- * Responsible for interfacing with the wifi connection and parsing the received data into a more
- * usable format for our use.
+ * Responsible for interfacing with the wifi connection and parsing the received
+ * data into a more usable format for our use.
  * 
  * @author Scott Sewell
  */
@@ -18,26 +18,22 @@ public class StartParameters
     // our project team number
     private static final int TEAM_NUMBER = 10;
 
-    
     private HashMap<String,Integer> m_data;
-    
-    
+
     /**
      * Constructor.
      */
     public StartParameters() {}
-    
+
     /**
-     * Use mock wifi data to work around the need for a server
-     * to allow for quick testing.
+     * Use mock wifi data to work around the need for a server to allow for
+     * quick testing.
      */
     public void useTestData()
     {
         m_data = new HashMap<String,Integer>();
-        m_data.put("BTN", 10);  // Builder Team Number      [1,17]
-        m_data.put("BSC", 1);   // Builder Start Corner     [1,4]
-        m_data.put("CTN", 8);   // Collector Team Number    [1,17]
-        m_data.put("CSC", 2);   // Collector Start Corner   [1,4]
+        m_data.put("Role", 10); // Role     0 = builder, 1 = garbage collector
+        m_data.put("SC", 1);    // Start Corner [1,4]
         m_data.put("LRZx", 0);  // Red Zone Lower Left Corner x     [-1,11]
         m_data.put("LRZy", 5);  // Red Zone Lower Left Corner y     [-1,11]
         m_data.put("URZx", 2);  // Red Zone Upper Right Corner x    [-1,11]
@@ -94,7 +90,7 @@ public class StartParameters
      */
     public boolean isBuilder()
     {
-        return m_data.get("BTN") == TEAM_NUMBER;
+        return m_data.get("Role") == 0;
     }
     
     /**
@@ -104,7 +100,7 @@ public class StartParameters
      */
     public int getStartCorner()
     {
-        return isBuilder() ? m_data.get("BSC") : m_data.get("CSC");
+        return m_data.get("SC");
     }
     
     /**

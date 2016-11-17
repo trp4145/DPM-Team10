@@ -20,35 +20,42 @@ public class Vector2
     
     /**
      * Constructor.
-     * @param x the x-axis coordinate.
-     * @param y the y-axis coordinate.
+     * 
+     * @param x
+     *            the x-axis coordinate.
+     * @param y
+     *            the y-axis coordinate.
      */
     public Vector2(float x, float y)
     {
         m_x = x;
         m_y = y;
     }
-    
+
     /**
      * Clone constructor.
-     * @param v vector to clone.
+     * 
+     * @param v
+     *            a vector to clone.
      */
     public Vector2(Vector2 v)
     {
         if (v != null)
         {
             m_x = v.getX();
-            m_y = v.getY();   
+            m_y = v.getY();
         }
         else
         {
             throw new InvalidParameterException("Attempted to clone a null vector!");
         }
     }
-    
+
     /**
      * Adds a vector to this vector.
-     * @param v the vector to add.
+     * 
+     * @param v
+     *            the vector to add.
      * @return this vector after the addition.
      */
     public Vector2 add(Vector2 v)
@@ -56,7 +63,7 @@ public class Vector2
         if (v != null)
         {
             m_x += v.getX();
-            m_y += v.getY();    
+            m_y += v.getY();
         }
         else
         {
@@ -64,10 +71,12 @@ public class Vector2
         }
         return this;
     }
-    
+
     /**
      * Subtracts a vector from this vector.
-     * @param v the vector to subtract.
+     * 
+     * @param v
+     *            the vector to subtract.
      * @return this vector after the subtraction.
      */
     public Vector2 subtract(Vector2 v)
@@ -83,10 +92,12 @@ public class Vector2
         }
         return this;
     }
-    
+
     /**
      * Multiplies this vector by a.
-     * @param a the scalar to multiply the vector by.
+     * 
+     * @param a
+     *            the scalar to multiply the vector by.
      * @return this vector after the multiplication.
      */
     public Vector2 scale(float a)
@@ -95,37 +106,41 @@ public class Vector2
         m_y *= a;
         return this;
     }
-    
+
     /**
      * Rotates this vector by a specified angle.
-     * @param angle counter-clockwise angle in degrees.
+     * 
+     * @param angle
+     *            counter-clockwise angle in degrees.
      * @return this vector after the rotation.
      */
     public Vector2 rotate(float angle)
     {
         double radians = Math.toRadians(angle);
-        float sin = (float)Math.sin(radians);
-        float cos = (float)Math.cos(radians);
+        float sin = (float) Math.sin(radians);
+        float cos = (float) Math.cos(radians);
 
         float tx = m_x;
         float ty = m_y;
-        
+
         m_x = cos * tx - sin * ty;
         m_y = sin * tx + cos * ty;
         return this;
     }
-    
+
     /**
      * Calculates the magnitude of this vector.
+     * 
      * @return the magnitude.
      */
     public float magnitude()
     {
-        return (float)Math.sqrt(m_x * m_x + m_y * m_y);
+        return (float) Math.sqrt(m_x * m_x + m_y * m_y);
     }
-    
+
     /**
      * Calculates the angle of this vector.
+     * 
      * @return the angle in degrees counter-clockwise from the x-axis.
      */
     public float angle()
@@ -138,86 +153,106 @@ public class Vector2
         // brings range [-pi/2, 3pi/2] to [0, 2pi]
         if (angle < 0)
         {
-            angle +=  2 * Math.PI;
+            angle += 2 * Math.PI;
         }
-        return (float)(Math.toDegrees(angle));
+        return (float) (Math.toDegrees(angle));
     }
-    
+
     /**
      * Creates a formatted string to represent the vector.
+     * 
      * @return a string formatted like "(3.21,30.53)".
      */
     public String toString()
     {
         return "(" + String.format("%.2f", m_x) + "," + String.format("%.2f", m_y) + ")";
     }
-    
+
     /**
      * Adds two vectors.
-     * @param v1 a vector.
-     * @param v2 a vector to add to v1.
+     * 
+     * @param v1
+     *            a vector.
+     * @param v2
+     *            a vector to add to v1.
      * @return a new vector containing the sum.
      */
     public static Vector2 add(Vector2 v1, Vector2 v2)
     {
         return new Vector2(v1).add(v2);
     }
-    
+
     /**
      * Subtracts v2 from v1.
-     * @param v1 a vector.
-     * @param v2 a vector to subtract from v1.
+     * 
+     * @param v1
+     *            a vector.
+     * @param v2
+     *            a vector to subtract from v1.
      * @return a new vector containing the difference.
      */
     public static Vector2 subtract(Vector2 v1, Vector2 v2)
     {
         return new Vector2(v1).subtract(v2);
     }
-    
+
     /**
      * Multiplies a vector.
-     * @param v a vector.
-     * @param a scaler to multiply v by.
+     * 
+     * @param v
+     *            a vector.
+     * @param a
+     *            scaler to multiply v by.
      * @return a new scaled vector.
      */
     public static Vector2 scale(Vector2 v, float a)
     {
         return new Vector2(v).scale(a);
     }
-    
+
     /**
      * Rotates a vector.
-     * @param v a vector.
-     * @param a counter-clockwise angle in degrees from the x-axis to rotate v by.
+     * 
+     * @param v
+     *            a vector.
+     * @param a
+     *            counter-clockwise angle in degrees from the x-axis to rotate v
+     *            by.
      * @return a new rotated vector.
      */
     public static Vector2 rotate(Vector2 v, float a)
     {
         return new Vector2(v).rotate(a);
     }
-    
+
     /**
      * Calculate the distance between two vectors.
-     * @param v1 a vector.
-     * @param v2 a vector.
+     * 
+     * @param v1
+     *            a vector.
+     * @param v2
+     *            a vector.
      * @return the distance between the two vectors.
      */
     public static float distance(Vector2 v1, Vector2 v2)
     {
         return Vector2.subtract(v2, v1).magnitude();
     }
-    
+
     /**
      * Creates a new vector from a set of polar coordinates.
-     * @param angle in degrees from the x-axis.
-     * @param magnitude of the vector.
+     * 
+     * @param angle
+     *            the angle in degrees from the x-axis.
+     * @param magnitude
+     *            the length of the vector.
      * @return new vector with the specified angle and magnitude.
      */
     public static Vector2 fromPolar(float angle, float magnitude)
     {
         return Vector2.unitX().scale(magnitude).rotate(angle);
     }
-    
+
     /**
      * @return the x-axis coordinate.
      */
@@ -233,10 +268,12 @@ public class Vector2
     {
         return m_y;
     }
-    
+
     /**
      * Sets the x-axis coordinate.
-     * @param x the new x-axis value.
+     * 
+     * @param x
+     *            the new x-axis value.
      */
     public void setX(float x)
     {
@@ -245,7 +282,9 @@ public class Vector2
 
     /**
      * Sets the y-axis coordinate.
-     * @param y the new y-axis value.
+     * 
+     * @param y
+     *            the new y-axis value.
      */
     public void setY(float y)
     {
