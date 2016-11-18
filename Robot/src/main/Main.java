@@ -3,6 +3,7 @@ package main;
 import java.util.*;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
+import lejos.hardware.Sounds;
 
 /**
  * The main class that manages most of the decision making aspects of the robot.
@@ -21,6 +22,7 @@ public class Main
     private UltrasonicPoller m_usMain;
     private UltrasonicPoller m_usUpper;
     private Driver m_driver;
+    private HeldBlockManager m_blockManager;
     private Display m_display;
 
     /**
@@ -43,6 +45,7 @@ public class Main
         m_odometer = new Odometer();
         m_odoCorrection = new OdometryCorrection(m_odometer);
         m_driver = new Driver(m_odometer);
+        m_blockManager = new HeldBlockManager();
         m_display = new Display(m_odometer);
 
         // choose whether to use wifi or test parameters.
@@ -72,25 +75,41 @@ public class Main
         // localize
         localize(true);
         
+        // start odometry correction now that localization is done
         m_odoCorrection.start();
-
-        List<Vector2> waypoints = new ArrayList<Vector2>();
-        waypoints.add(new Vector2(60, 0));
-        waypoints.add(new Vector2(60, 60));
-        waypoints.add(new Vector2(0, 60));
-        waypoints.add(new Vector2(0, 0));
-        waypoints.add(new Vector2(45, 45));
-
-        // traveling to destination
-        while (waypoints.size() > 0)
+        
+        // initialize the claw
+        m_blockManager.raisePulley();
+        
+        // temp block search
+        m_driver.turn(90, Robot.ROTATE_SPEED / 3, false);
+        while (m_usMain.getFilteredDistance() > 80) {}
+        Utils.sleep(1625);
+        m_driver.stop();
+        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
+        
+        float checkDistance = 25f;
+        m_driver.goForward(blockDistance - checkDistance, true);
+        m_driver.turn(-90, Robot.ROTATE_SPEED, true);
+        boolean isBlueBlock = m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY() > (checkDistance + 10);
+        m_driver.turn(90, Robot.ROTATE_SPEED, true);
+        if (isBlueBlock)
         {
-            m_driver.travelTo(waypoints.get(0));
-            while (m_driver.isTravelling()) {}
-            if (!m_driver.isNearDestination())
-            {
-                continue;
-            }
-            waypoints.remove(0);
+            Sound.buzz();
+            m_driver.goForward(checkDistance - 8, true);
+            m_blockManager.captureBlock();
+        }
+        else
+        {
+            Sound.twoBeeps();
+        }
+        Utils.sleep(500);
+        
+        m_driver.travelTo(m_board.getBuildZoneCenter(), true);
+
+        if (m_blockManager.getBlockCount() > 0)
+        {
+            m_blockManager.releaseBlock();
         }
 
         // finish
@@ -108,6 +127,14 @@ public class Main
      */
     public void localize(boolean moveToOrigin)
     {
+        // account for the starting corner the robot is in
+        int corner =  m_startParams.getStartCorner();
+        float cornerAngOffset = 90 * corner;
+        Vector2 cornerPos = new Vector2(
+                            corner == 2 || corner == 3 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0,
+                            corner == 3 || corner == 4 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0
+                         );
+        
         float angleA = 0;
         float angleB = 0;
         
@@ -136,26 +163,16 @@ public class Main
         
         // set the odometer using the measured angles
         float angle = 315 - (Math.abs(angleB - angleA) / 2);
-        m_odometer.setTheta(angle);
+        m_odometer.setTheta(angle + cornerAngOffset);
         
         // turn to face an ultrasound sensors at each wall, wait a bit, then grab distance sample
-        m_driver.turnTo(90);
+        m_driver.turnTo(90 + cornerAngOffset, true);
         Utils.sleep(200);
         Vector2 startPos = new Vector2(
                 m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY() - Board.TILE_SIZE,
                 Board.TILE_SIZE - (m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX())
                 );
         
-        // account for the starting corner the robot is in
-        int corner =  m_startParams.getStartCorner();
-        float cornerAngOffset = 90 * corner;
-        Vector2 cornerPos = new Vector2(
-                            corner == 2 || corner == 3 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0,
-                            corner == 3 || corner == 4 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0
-                         );
-        
-        // update the odometer
-        m_odometer.setTheta(m_odometer.getTheta() + cornerAngOffset);
         m_odometer.setPosition(cornerPos.add(startPos.rotate(cornerAngOffset)));
         
         Sound.beepSequenceUp();
@@ -163,9 +180,8 @@ public class Main
         // if applicable, move to the nearest line intersection
         if (moveToOrigin)
         {
-            m_driver.travelTo(Board.getNearestIntersection(m_odometer.getPosition()));
-            while (m_driver.isTravelling()) {}
-            m_driver.turnTo(cornerAngOffset - 90);
+            m_driver.travelTo(Board.getNearestIntersection(m_odometer.getPosition()), true);
+            m_driver.turnTo(cornerAngOffset - 90, true);
         }
     }
 }
