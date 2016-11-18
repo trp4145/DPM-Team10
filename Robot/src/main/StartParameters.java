@@ -13,7 +13,7 @@ import wifi.WifiConnection;
 public class StartParameters
 {
     // the IP address of the computer running the server application
-    private static final String SERVER_IP = "192.168.2.22";
+    private static final String SERVER_IP = "192.168.2.3";
     // our project team number
     private static final int TEAM_NUMBER = 10;
 
@@ -31,7 +31,7 @@ public class StartParameters
     public void useTestData()
     {
         m_data = new HashMap<String,Integer>();
-        m_data.put("Role", 0); // Role     0 = builder, 1 = garbage collector
+        m_data.put("Role", 0);  // Role     0 = builder, 1 = garbage collector
         m_data.put("SC", 1);    // Start Corner [1,4]
         m_data.put("LRZx", 0);  // Red Zone Lower Left Corner x     [-1,11]
         m_data.put("LRZy", 5);  // Red Zone Lower Left Corner y     [-1,11]

@@ -96,15 +96,19 @@ public class Main
         {
             Sound.twoBeeps();
         }
-        Utils.sleep(1000);
+        Utils.sleep(500);
         
         // test navigation
         List<Vector2> waypoints = new ArrayList<Vector2>();
+        /*
         waypoints.add(new Vector2(60, 0));
         waypoints.add(new Vector2(60, 60));
         waypoints.add(new Vector2(0, 60));
         waypoints.add(new Vector2(0, 0));
         waypoints.add(new Vector2(45, 45));
+        */
+
+        waypoints.add(m_board.getBuildZoneCenter());
 
         // traveling to destination
         while (waypoints.size() > 0)
