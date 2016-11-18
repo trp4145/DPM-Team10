@@ -22,6 +22,7 @@ public class Main
     private UltrasonicPoller m_usMain;
     private UltrasonicPoller m_usUpper;
     private Driver m_driver;
+    private HeldBlockManager m_blockManager;
     private Display m_display;
 
     /**
@@ -44,6 +45,7 @@ public class Main
         m_odometer = new Odometer();
         m_odoCorrection = new OdometryCorrection(m_odometer);
         m_driver = new Driver(m_odometer);
+        m_blockManager = new HeldBlockManager();
         m_display = new Display(m_odometer);
 
         // choose whether to use wifi or test parameters.
@@ -76,6 +78,9 @@ public class Main
         // start odometry correction now that localization is done
         m_odoCorrection.start();
         
+        // initialize the claw
+        m_blockManager.raisePulley();
+        
         // temp block search
         m_driver.turn(90, Robot.ROTATE_SPEED / 3, false);
         while (m_usMain.getFilteredDistance() > 80) {}
@@ -91,6 +96,8 @@ public class Main
         if (isBlueBlock)
         {
             Sound.buzz();
+            m_driver.goForward(checkDistance - 8, true);
+            m_blockManager.captureBlock();
         }
         else
         {
@@ -98,27 +105,11 @@ public class Main
         }
         Utils.sleep(500);
         
-        // test navigation
-        List<Vector2> waypoints = new ArrayList<Vector2>();
-        /*
-        waypoints.add(new Vector2(60, 0));
-        waypoints.add(new Vector2(60, 60));
-        waypoints.add(new Vector2(0, 60));
-        waypoints.add(new Vector2(0, 0));
-        waypoints.add(new Vector2(45, 45));
-        */
+        m_driver.travelTo(m_board.getBuildZoneCenter(), true);
 
-        waypoints.add(m_board.getBuildZoneCenter());
-
-        // traveling to destination
-        while (waypoints.size() > 0)
+        if (m_blockManager.getBlockCount() > 0)
         {
-            m_driver.travelTo(waypoints.get(0), true);
-            if (!m_driver.isNearDestination())
-            {
-                continue;
-            }
-            waypoints.remove(0);
+            m_blockManager.releaseBlock();
         }
 
         // finish
