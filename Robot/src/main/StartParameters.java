@@ -31,8 +31,10 @@ public class StartParameters
     public void useTestData()
     {
         m_data = new HashMap<String,Integer>();
-        m_data.put("Role", 0);  // Role     0 = builder, 1 = garbage collector
-        m_data.put("SC", 1);    // Start Corner [1,4]
+        m_data.put("BTN", 10);  // Builder Team Number  [1,17]
+        m_data.put("BSC", 1);   // Builder Start Corner [1,4]
+        m_data.put("CTN", 1);   // Collector Team Number  [1,17]
+        m_data.put("CSC", 3);   // Collector Start Corner [1,4]
         m_data.put("LRZx", 0);  // Red Zone Lower Left Corner x     [-1,11]
         m_data.put("LRZy", 4);  // Red Zone Lower Left Corner y     [-1,11]
         m_data.put("URZx", 2);  // Red Zone Upper Right Corner x    [-1,11]
@@ -89,7 +91,7 @@ public class StartParameters
      */
     public boolean isBuilder()
     {
-        return m_data.get("Role") == 0;
+        return m_data.get("BTN") == TEAM_NUMBER;
     }
     
     /**
@@ -99,7 +101,7 @@ public class StartParameters
      */
     public int getStartCorner()
     {
-        return m_data.get("SC");
+        return isBuilder() ? m_data.get("BSC") : m_data.get("CSC");
     }
     
     /**
