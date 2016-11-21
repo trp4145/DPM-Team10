@@ -1,9 +1,7 @@
 package main;
 
-import java.util.*;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
-import lejos.hardware.Sounds;
 
 /**
  * The main class that manages most of the decision making aspects of the robot.
@@ -79,7 +77,7 @@ public class Main
         m_odoCorrection.start();
         
         // initialize the claw
-        m_blockManager.raisePulley();
+        m_blockManager.initializeClaw();
         
         // temp block search
         m_driver.turn(90, Robot.ROTATE_SPEED / 3, false);
