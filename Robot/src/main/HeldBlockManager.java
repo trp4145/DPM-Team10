@@ -30,17 +30,19 @@ public class HeldBlockManager
         m_clawMotor.setSpeed(Robot.CLAW_SPEED);
         m_pulleyMotor.setSpeed(Robot.PULLEY_SPEED);
     }
-    
     /**
-     * Raises the pulley until reaches the claw reaches the top position.
+     * Initializes the claw system by raising the pulley and closing the claw
      */
-    
+
     public void initializeClaw() {
         raisePulley();
         m_clawMotor.rotateTo(90);
         m_clawMotor.waitComplete();
 
     }
+    /**
+     * Raises the pulley until reaches the claw reaches the top position.
+     */
     
     public void raisePulley()
     {
@@ -111,8 +113,7 @@ public class HeldBlockManager
         {
             motor.backward();
         }
-
-        //motor.resetTachoCount();
+            
         int lastTacho = 999999;
         boolean stall = false;
         while (!stall)
