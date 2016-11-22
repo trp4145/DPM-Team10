@@ -70,7 +70,7 @@ public class Main
         m_display.start();
         
         // localize
-        localize(true);
+//        localize(true);
         
         m_odoCorrection.start();
 
@@ -79,7 +79,7 @@ public class Main
         waypoints.add(new Vector2(60, 60));
         waypoints.add(new Vector2(0, 60));
         waypoints.add(new Vector2(0, 0));
-        waypoints.add(new Vector2(45, 45));
+//        waypoints.add(new Vector2(45, 45));
 
         // traveling to destination
         while (waypoints.size() > 0)
@@ -92,9 +92,10 @@ public class Main
             }
             waypoints.remove(0);
         }
-
+        
+        m_driver.turnTo(0);
         // finish
-        System.exit(0);
+//        System.exit(0);
     }
 
     /**

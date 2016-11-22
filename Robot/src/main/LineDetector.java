@@ -18,7 +18,7 @@ public class LineDetector extends Thread
     // how many past brightness values are store
     private static final int BUFFER_SIZE = 6;
     // time that has to have passed to detect another line
-    private static final int MIN_TIME_BETWEEN_LINES = 90;
+    private static final int MIN_TIME_BETWEEN_LINES = 150;
     // the minimum change in brightness to consider it a line
     private static final float BRIGHTNESS_DELTA_THRESHOLD = 0.125f;
 

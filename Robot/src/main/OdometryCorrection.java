@@ -11,12 +11,15 @@ import lejos.hardware.Sound;
 public class OdometryCorrection extends Thread
 {
     // how much the corrected values override the original values
-    private static final float CORRECTION_WEIGHT = 0.4f;
+    private static final float CORRECTION_WEIGHT = .4f;
+    //error before correcting 
+    private static final float CORRECTION_ARC = 2.5f;
 
     private Odometer m_odometer;
     private LineDetector m_rightLineDetector;
     private LineDetector m_leftLineDetector;
-
+    private LinearRegression m_listPos;
+    
     /**
      * Constructor.
      * 
@@ -28,6 +31,8 @@ public class OdometryCorrection extends Thread
         m_odometer = odometer;
         m_rightLineDetector = new LineDetector(Robot.COLOR_RIGHT);
         m_leftLineDetector = new LineDetector(Robot.COLOR_LEFT);
+        
+        m_listPos = new LinearRegression();        
     }
 
     /**
@@ -40,18 +45,26 @@ public class OdometryCorrection extends Thread
         m_leftLineDetector.start();
 
         long updateStart;
+        float angle = m_odometer.getTheta(); 
         while (true)
         {
             updateStart = System.currentTimeMillis();
 
             if (m_leftLineDetector.detectedLine())
             {
-                correctPosition(Robot.CSL_OFFSET);
+            	Sound.beep();
+            	m_listPos.addPoint(correctPosition(Robot.CSL_OFFSET));
             }
 
             if (m_rightLineDetector.detectedLine())
             {
-                correctPosition(Robot.CSR_OFFSET);
+            	Sound.beepSequence();
+            	m_listPos.addPoint(correctPosition(Robot.CSR_OFFSET));
+            }
+            
+            if (m_listPos.sampleSize()>=2)
+            {
+            	correctAngle(m_listPos.angle());           	
             }
 
             Utils.sleepToNextPeroid(LineDetector.UPDATE_PERIOD, updateStart);
@@ -65,10 +78,10 @@ public class OdometryCorrection extends Thread
      * @param colorSensorOffset
      *            the position of the color sensor in local space.
      */
-    private void correctPosition(Vector2 colorSensorOffset)
+    private Vector2 correctPosition(Vector2 colorSensorOffset)
     {
         // play sound indicating a correction is occuring.
-        Sound.beep();
+//        Sound.beep();
         
         // get the position of the color sensor on the board
         Vector2 colorSensorPos = m_odometer.toWorldSpace(colorSensorOffset);
@@ -90,6 +103,28 @@ public class OdometryCorrection extends Thread
         {
             correction = new Vector2(0, dispFromLines.getY());
         }
-        m_odometer.setPosition(m_odometer.getPosition().add(correction));
+        Vector2 newPos = m_odometer.getPosition().add(correction);
+        m_odometer.setPosition(newPos);
+        
+        return newPos;
     }
+    
+    /**
+     * Correct the theta of the odometer, given that the error is not too large
+     * @param angle
+     *              The new angle to which we want to set odometer correction
+     */
+    private void correctAngle(float angle)
+    {
+    	if(Math.abs((double)(m_odometer.getTheta() - angle)) < CORRECTION_ARC)
+    	{
+    		m_odometer.setTheta(angle);	
+    	}
+    	else
+    	{
+    		m_listPos.clearList();
+    	}
+    }
+
+    
 }
