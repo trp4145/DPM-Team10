@@ -37,34 +37,48 @@ public class Driver
     }
 
     /**
-     * Begins moving the robot towards a specific position. The calling thread
-     * is not blocked.
+     * Begins moving the robot a certain distance. The calling thread is not
+     * blocked.
      * 
-     * @param destination
-     *            The position to move towards on the board in cm.
+     * @param distance
+     *            the distance that is traveled by the robot in cm.
+     * @param blockThread
+     *            If true this call returns only after the turn is complete.
      */
-    public void travelTo(Vector2 destination)
+    public void goForward(float distance, boolean blockThread)
     {
-        m_destination = destination;
-
-        Vector2 currentLocation = m_odometer.getPosition();
-
-        // turn to face new waypoint
-        turnTo(Vector2.subtract(destination, currentLocation).angle());
-
-        // a short pause to allow time for distance sensor to get some values
-        Utils.sleep(350);
-
-        // calculate the distance to the new location
-        float distance = Vector2.distance(currentLocation, destination);
-
         // set motor speed
         m_leftMotor.setSpeed(Robot.MOVE_SPEED);
         m_rightMotor.setSpeed(Robot.MOVE_SPEED);
 
         // rotate motors
         m_leftMotor.rotate(convertDistance(Robot.WHEEL_RADIUS, distance), true);
-        m_rightMotor.rotate(convertDistance(Robot.WHEEL_RADIUS, distance), true);
+        m_rightMotor.rotate(convertDistance(Robot.WHEEL_RADIUS, distance), !blockThread);
+    }
+
+    /**
+     * Begins moving the robot towards a specific position. The calling thread
+     * is not blocked.
+     * 
+     * @param destination
+     *            The position to move towards on the board in cm.
+     * @param blockThread
+     *            If true this call returns only after the turn is complete.
+     */
+    public void travelTo(Vector2 destination, boolean blockThread)
+    {
+        m_destination = destination;
+
+        Vector2 currentLocation = m_odometer.getPosition();
+
+        // turn to face new waypoint
+        turnTo(Vector2.subtract(destination, currentLocation).angle(), blockThread);
+
+        // a short pause to allow time for distance sensor to get some values
+        Utils.sleep(350);
+
+        // calculate the distance to the new location
+        goForward(Vector2.distance(currentLocation, destination), blockThread);
     }
 
     /**
@@ -73,8 +87,10 @@ public class Driver
      * 
      * @param targetAngle
      *            the world space angle to face in degrees.
+     * @param blockThread
+     *            If true this call returns only after the turn is complete.
      */
-    public void turnTo(float targetAngle)
+    public void turnTo(float targetAngle, boolean blockThread)
     {
         float bearing = Utils.toBearing(targetAngle - m_odometer.getTheta());
 
@@ -84,7 +100,7 @@ public class Driver
 
         // rotate the motors to complete the motion
         m_leftMotor.rotate(-convertAngle(Robot.WHEEL_RADIUS, bearing), true);
-        m_rightMotor.rotate(convertAngle(Robot.WHEEL_RADIUS, bearing), false);
+        m_rightMotor.rotate(convertAngle(Robot.WHEEL_RADIUS, bearing), !blockThread);
     }
 
     /**

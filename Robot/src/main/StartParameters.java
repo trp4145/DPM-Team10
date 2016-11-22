@@ -13,7 +13,7 @@ import wifi.WifiConnection;
 public class StartParameters
 {
     // the IP address of the computer running the server application
-    private static final String SERVER_IP = "192.168.2.6";
+    private static final String SERVER_IP = "192.168.2.3";
     // our project team number
     private static final int TEAM_NUMBER = 10;
 
@@ -31,18 +31,18 @@ public class StartParameters
     public void useTestData()
     {
         m_data = new HashMap<String,Integer>();
-        m_data.put("BTN", 10);  // Builder Team Number      [1,17]
-        m_data.put("BSC", 1);   // Builder Start Corner     [1,4]
-        m_data.put("CTN", 8);   // Collector Team Number    [1,17]
-        m_data.put("CSC", 2);   // Collector Start Corner   [1,4]
+        m_data.put("BTN", 10);  // Builder Team Number  [1,17]
+        m_data.put("BSC", 1);   // Builder Start Corner [1,4]
+        m_data.put("CTN", 1);   // Collector Team Number  [1,17]
+        m_data.put("CSC", 3);   // Collector Start Corner [1,4]
         m_data.put("LRZx", 0);  // Red Zone Lower Left Corner x     [-1,11]
-        m_data.put("LRZy", 5);  // Red Zone Lower Left Corner y     [-1,11]
+        m_data.put("LRZy", 4);  // Red Zone Lower Left Corner y     [-1,11]
         m_data.put("URZx", 2);  // Red Zone Upper Right Corner x    [-1,11]
-        m_data.put("URZy", 9);  // Red Zone Upper Right Corner y    [-1,11]
-        m_data.put("LGZx", 6);  // Green Zone Lower Left Corner x   [-1,11]
-        m_data.put("LGZy", 3);  // Green Zone Lower Left Corner y   [-1,11]
-        m_data.put("UGZx", 8);  // Green Zone Upper Right Corner x  [-1,11]
-        m_data.put("UGZy", 4);  // Green Zone Upper Right Corner y  [-1,11]
+        m_data.put("URZy", 6);  // Red Zone Upper Right Corner y    [-1,11]
+        m_data.put("LGZx", 0);  // Green Zone Lower Left Corner x   [-1,11]
+        m_data.put("LGZy", 4);  // Green Zone Lower Left Corner y   [-1,11]
+        m_data.put("UGZx", 2);  // Green Zone Upper Right Corner x  [-1,11]
+        m_data.put("UGZy", 6);  // Green Zone Upper Right Corner y  [-1,11]
     }
     
     /**
