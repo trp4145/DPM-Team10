@@ -30,11 +30,12 @@ public class HeldBlockManager
         m_clawMotor.setSpeed(Robot.CLAW_SPEED);
         m_pulleyMotor.setSpeed(Robot.PULLEY_SPEED);
     }
-    /**
-     * Initializes the claw system by raising the pulley and closing the claw
-     */
 
-    public void initializeClaw() {
+    /**
+     * Initializes the claw system by raising the pulley and closing the claw.
+     */
+    public void initializeClaw()
+    {
         raisePulley();
         m_clawMotor.rotateTo(90);
         m_clawMotor.waitComplete();
