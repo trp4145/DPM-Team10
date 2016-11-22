@@ -10,7 +10,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 public class HeldBlockManager
 {
     private final int MOTOR_CLAW_STALL_THRESHOLD = 4;
-    private final int MOTOR_PULLEY_STALL_THRESHOLD = 1;
+    private final int MOTOR_PULLEY_STALL_THRESHOLD = 7;
 
     private EV3LargeRegulatedMotor m_clawMotor;
     private EV3LargeRegulatedMotor m_pulleyMotor;
@@ -30,6 +30,17 @@ public class HeldBlockManager
         m_clawMotor.setSpeed(Robot.CLAW_SPEED);
         m_pulleyMotor.setSpeed(Robot.PULLEY_SPEED);
     }
+
+    /**
+     * Initializes the claw system by raising the pulley and closing the claw.
+     */
+    public void initializeClaw()
+    {
+        raisePulley();
+        m_clawMotor.rotateTo(90);
+        m_clawMotor.waitComplete();
+
+    }
     
     /**
      * Raises the pulley until reaches the claw reaches the top position.
@@ -37,6 +48,7 @@ public class HeldBlockManager
     public void raisePulley()
     {
         rotateUntilStall(m_pulleyMotor, false, MOTOR_PULLEY_STALL_THRESHOLD);
+
     }
 
     /**
@@ -102,8 +114,7 @@ public class HeldBlockManager
         {
             motor.backward();
         }
-
-        motor.resetTachoCount();
+            
         int lastTacho = 999999;
         boolean stall = false;
         while (!stall)

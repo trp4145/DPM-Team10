@@ -1,5 +1,6 @@
 package main;
 
+import java.util.*;
 import lejos.robotics.geometry.*;
 
 /**
@@ -26,7 +27,19 @@ public class Utils
     }
 
     /**
-     * Transforms a [0, 360] angle to a [-180, 180] angle.
+     * Normalizes any angle to a [0, 360] angle.
+     * 
+     * @param angle
+     *            an angle in degrees.
+     * @return the normalized angle.
+     */
+    public static float normalizeAngle(float angle)
+    {
+        return (((angle % 360) + 360) % 360);
+    }
+
+    /**
+     * Transforms any angle to a [-180, 180] angle.
      * 
      * @param angle
      *            an angle in degrees.
@@ -108,6 +121,33 @@ public class Utils
     public static boolean lineIntersectsRect(Vector2 lineStart, Vector2 lineEnd, Rectangle rect)
     {
         return rect.intersectsLine(lineStart.getX(), lineStart.getY(), lineEnd.getX(), lineEnd.getY());
+    }
+
+    /**
+     * Returns the index of a list containing the value closest to a given
+     * value.
+     * 
+     * @param value
+     *            the value to look for.
+     * @param list
+     *            a non empty list.
+     * @return the index where the closest value is located in the list.
+     */
+    public static int closestIndex(float value, List<Float> list)
+    {
+        float min = Float.MAX_VALUE;
+        int closest = -1;
+
+        for (int i = 0; i < list.size(); i++)
+        {
+            final float diff = Math.abs(list.get(i) - value);
+            if (diff < min)
+            {
+                min = diff;
+                closest = i;
+            }
+        }
+        return closest;
     }
 
     /**

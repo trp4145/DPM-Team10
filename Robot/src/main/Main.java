@@ -3,7 +3,6 @@ package main;
 import java.util.*;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
-import lejos.hardware.Sounds;
 
 /**
  * The main class that manages most of the decision making aspects of the robot.
@@ -72,18 +71,22 @@ public class Main
         m_odometer.start();
         m_display.start();
         
+        //initialize claw 
+        m_blockManager.initializeClaw();
+        
         // localize
         localize(true);
         
         // start odometry correction now that localization is done
         m_odoCorrection.start();
-        
-        // initialize the claw
-//        m_blockManager.raisePulley();
-        
+                
+        //testing 
         m_driver.travelTo(Vector2.zero(), true);
        // m_driver.turnTo(0, true);
 //        m_driver.travelTo(new Vector2(0,180) , true);
+
+        
+        
         
         // temp block search
 //        m_driver.turn(90, Robot.ROTATE_SPEED / 3, false);
@@ -141,43 +144,63 @@ public class Main
                             corner == 2 || corner == 3 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0,
                             corner == 3 || corner == 4 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0
                          );
-        
-        float angleA = 0;
-        float angleB = 0;
-        
-        // start the robot turning one revolution
+
+        // start the robot turning one revolution and record the seen distances
+        // along with the angles they were captured at
+        List<Float> orientations = new ArrayList<Float>();
+        List<Float> distances = new ArrayList<Float>();
         m_driver.turn(-360, Robot.LOCALIZATION_SPEED, false);
+        while (m_driver.isTravelling())
+        {
+            orientations.add(m_odometer.getTheta());
+            distances.add(m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY());
+        }
         
-        // turn until wall is seen
-        while (m_usMain.getFilteredDistance() > LOCALIZATION_DISTANCE) {}
-        Utils.sleep(500);
+        // find all the angles that correspond to when the distance rises above
+        // LOCALIZATION_DISTANCE and when it lowers below LOCALIZATION_DISTANCE
+        List<Float> risingAngles = new ArrayList<Float>();
+        List<Float> fallingAngles = new ArrayList<Float>();
+        for (int i = 0; i < orientations.size(); i++)
+        {
+            float dist = distances.get(i);
+            float nextDist = distances.get((i + 1) % distances.size());
+            
+            if (dist < LOCALIZATION_DISTANCE && nextDist > LOCALIZATION_DISTANCE)
+            {
+                risingAngles.add(orientations.get(i));
+            }
+            
+            if (dist > LOCALIZATION_DISTANCE && nextDist < LOCALIZATION_DISTANCE)
+            {
+                fallingAngles.add(orientations.get(i));
+            }
+        }
 
-        // continue turning until no wall is seen
-        while (m_usMain.getFilteredDistance() < LOCALIZATION_DISTANCE) {}
+        // determine which falling and rising edge angles correspond to the wall
+        // as to filter out any blocks new the start point. We know that rising
+        // falling angle pair with the largest angle between them is the pair
+        // that belong to the wall.
+        float largestBearing = Float.MIN_VALUE;
+        float angle = 0;
+        for (float risingAng : risingAngles)
+        {
+            for (float fallingAng : fallingAngles)
+            {
+                float bearing = Math.abs(Utils.toBearing(risingAng - fallingAng));
+                if (bearing > largestBearing)
+                {
+                    largestBearing = bearing;
+                    angle = 315 - (bearing / 2) + (m_odometer.getTheta() - risingAng) - 90;
+                }
+            }
+        }
 
-        // store the angle of the first wall and start turning the other way
-        m_driver.stop();
-        angleA = m_odometer.getTheta();
-        m_driver.turn(360, Robot.LOCALIZATION_SPEED, false);
-
-        // turn back facing wall until no wall is seen
-        Utils.sleep(1200);
-        while (m_usMain.getFilteredDistance() < LOCALIZATION_DISTANCE) {}
-        
-        // store the angle of the other wall
-        m_driver.stop();
-        angleB = m_odometer.getTheta();
-        
-        // set the odometer using the measured angles
-        float angle = 315 - (Math.abs(angleB - angleA) / 2);
+        // set odometer angle accounting for start corner
         m_odometer.setTheta(angle + cornerAngOffset);
         
-        // turn to face an ultrasound sensors at each wall, wait a bit, then grab distance sample
-        m_driver.turnTo(90 + cornerAngOffset, true);
-        Utils.sleep(200);
         Vector2 startPos = new Vector2(
-                m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY() - Board.TILE_SIZE,
-                Board.TILE_SIZE - (m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX())
+                distances.get(Utils.closestIndex(Utils.normalizeAngle(-angle), orientations)) - Board.TILE_SIZE,
+                Board.TILE_SIZE - distances.get(Utils.closestIndex(Utils.normalizeAngle(90 - angle), orientations))
                 );
         
         m_odometer.setPosition(cornerPos.add(startPos.rotate(cornerAngOffset)));

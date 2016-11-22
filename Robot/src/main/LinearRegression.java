@@ -49,36 +49,6 @@ public class LinearRegression
 	}
 	
 	/**
-	 * @return the angle approximation based on a linear regression on the points in the set
-	 */
-	public float angle()
-	{
-		int quadrant = getQuadrant();
-		float angle = (float)Math.toDegrees(Math.atan((double)slope()));
-		
-		switch (quadrant){
-		case 1:
-			//do nothing to angle;
-			break;
-		case 2:
-			angle+=180;
-			break; 
-		case 3:
-			angle+=180;
-			break; 
-		case 4: 
-			angle+=360;
-			break; 
-		default: 
-			//no angle can be calculated 
-			angle = -1;
-			System.out.println("no angle ");
-		}
-		return angle; 
-	}
-	
-	
-	/**
 	 * @return the linear regression approximation of slope based on the set
 	 */
 	public float slope(){
