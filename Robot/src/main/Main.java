@@ -13,7 +13,7 @@ import lejos.hardware.Sounds;
 public class Main
 {
     // how far the robot sees while localizing
-    private static final float LOCALIZATION_DISTANCE = 40;
+    private static final float LOCALIZATION_DISTANCE = 30.0f;
     
     private StartParameters m_startParams;
     private Board m_board;
@@ -81,37 +81,43 @@ public class Main
         // initialize the claw
         m_blockManager.raisePulley();
         
+        m_driver.travelTo(Vector2.zero(), true);
+       // m_driver.turnTo(0, true);
+        m_driver.travelTo(new Vector2(0,180) , true);
+        
         // temp block search
-        m_driver.turn(90, Robot.ROTATE_SPEED / 3, false);
-        while (m_usMain.getFilteredDistance() > 80) {}
-        Utils.sleep(1625);
-        m_driver.stop();
-        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
+//        m_driver.turn(90, Robot.ROTATE_SPEED / 3, false);
+//        while (m_usMain.getFilteredDistance() > 80) {}
+//        Utils.sleep(1625);
+//        m_driver.stop();
+//        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
+//        
+//        float checkDistance = 25f;
+//        m_driver.goForward(blockDistance - checkDistance, true);
+//        m_driver.turn(-90, Robot.ROTATE_SPEED, true);
+//        boolean isBlueBlock = m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY() > (checkDistance + 10);
+//        m_driver.turn(90, Robot.ROTATE_SPEED, true);
+//        if (isBlueBlock)
+//        {
+//            Sound.buzz();
+//            m_driver.goForward(checkDistance - 8, true);
+//            m_blockManager.captureBlock();
+//        }
+//        else
+//        {
+//            Sound.twoBeeps();
+//        }
+//        Utils.sleep(500);
+//        
+//        m_driver.travelTo(m_board.getBuildZoneCenter(), true);
+//
+//
+//        if (m_blockManager.getBlockCount() > 0)
+//        {
+//            m_blockManager.releaseBlock();
+//        }
         
-        float checkDistance = 25f;
-        m_driver.goForward(blockDistance - checkDistance, true);
-        m_driver.turn(-90, Robot.ROTATE_SPEED, true);
-        boolean isBlueBlock = m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY() > (checkDistance + 10);
-        m_driver.turn(90, Robot.ROTATE_SPEED, true);
-        if (isBlueBlock)
-        {
-            Sound.buzz();
-            m_driver.goForward(checkDistance - 8, true);
-            m_blockManager.captureBlock();
-        }
-        else
-        {
-            Sound.twoBeeps();
-        }
-        Utils.sleep(500);
         
-        m_driver.travelTo(m_board.getBuildZoneCenter(), true);
-
-
-        if (m_blockManager.getBlockCount() > 0)
-        {
-            m_blockManager.releaseBlock();
-        }
 
         // finish
         System.exit(0);

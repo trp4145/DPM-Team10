@@ -1,5 +1,11 @@
 package main;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import lejos.hardware.Sound;
 
 /**
@@ -13,7 +19,8 @@ public class OdometryCorrection extends Thread
     // how much the corrected values override the original values
     private static final float CORRECTION_WEIGHT = .4f;
     //error before correcting 
-    private static final float CORRECTION_ARC = 2.5f;
+    private static final float MIN_CORRECTION_ARC = 0.5f;
+    private static final float MAX_CORRECTION_ARC = 1.5f;
 
     private Odometer m_odometer;
     private LineDetector m_rightLineDetector;
@@ -52,19 +59,22 @@ public class OdometryCorrection extends Thread
 
             if (m_leftLineDetector.detectedLine())
             {
-            	Sound.beep();
+//            	Sound.beep();
             	m_listPos.addPoint(correctPosition(Robot.CSL_OFFSET));
             }
 
             if (m_rightLineDetector.detectedLine())
             {
-            	Sound.beepSequence();
+//            	Sound.beepSequence();
             	m_listPos.addPoint(correctPosition(Robot.CSR_OFFSET));
             }
             
-            if (m_listPos.sampleSize()>=2)
-            {
-            	correctAngle(m_listPos.angle());           	
+            if (m_listPos.sampleSize()> 3 )
+            {                
+                float slope = m_listPos.slope(); 
+                
+                correctAngle(slope);     
+            	      	
             }
 
             Utils.sleepToNextPeroid(LineDetector.UPDATE_PERIOD, updateStart);
@@ -114,16 +124,43 @@ public class OdometryCorrection extends Thread
      * @param angle
      *              The new angle to which we want to set odometer correction
      */
-    private void correctAngle(float angle)
+    private void correctAngle(float slope)
     {
-    	if(Math.abs((double)(m_odometer.getTheta() - angle)) < CORRECTION_ARC)
-    	{
-    		m_odometer.setTheta(angle);	
-    	}
-    	else
-    	{
-    		m_listPos.clearList();
-    	}
+        float odometerAngle = m_odometer.getTheta();
+        float error = slope - odometerAngle;
+        while (Math.abs(error)> 90){
+            error+= 180;
+        }
+        
+        
+        
+        
+        String filename = "angleError.txt";
+        
+        try (   FileWriter file = new FileWriter(filename, true);
+                BufferedWriter writer = new BufferedWriter(file);
+                PrintWriter out = new  PrintWriter(writer))
+        {
+            out.println(error);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        if (error > MIN_CORRECTION_ARC && error < MAX_CORRECTION_ARC ){
+            //m_odometer.setTheta(m_odometer.getTheta()+error*CORRECTION); 
+        }else if (error > MAX_CORRECTION_ARC ){
+            Sound.buzz();
+            m_listPos.clearList();
+        }
+
     }
 
     

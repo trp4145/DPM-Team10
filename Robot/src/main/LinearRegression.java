@@ -13,7 +13,7 @@ public class LinearRegression
 {
 	
 	private LinkedList<Vector2> m_listPoints;
-	
+	private float m_slope; 
 	/**
 	 * Constructor
 	 */
@@ -80,13 +80,13 @@ public class LinearRegression
 	/**
 	 * @return the linear regression approximation of slope based on the set
 	 */
-	private float slope(){
+	public float slope(){
 		int n = m_listPoints.size();
 		float s = n*sumXY() - sumX()*sumY();
 		s /= (n*sumX2()- sumX()*sumX());
 		return s;	
 	}
-	
+		
 	//Methods required for linear regression 
 	/**
 	 * @return the sum of the X- components of the point in the set 
