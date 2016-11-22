@@ -79,11 +79,11 @@ public class Main
         m_odoCorrection.start();
         
         // initialize the claw
-        m_blockManager.raisePulley();
+//        m_blockManager.raisePulley();
         
         m_driver.travelTo(Vector2.zero(), true);
        // m_driver.turnTo(0, true);
-        m_driver.travelTo(new Vector2(0,180) , true);
+//        m_driver.travelTo(new Vector2(0,180) , true);
         
         // temp block search
 //        m_driver.turn(90, Robot.ROTATE_SPEED / 3, false);

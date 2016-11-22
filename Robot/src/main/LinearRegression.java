@@ -25,6 +25,7 @@ public class LinearRegression
 	/**
 	 * Add a new point to the set 
 	 * @param point
+	 * 
 	 */
 	public void addPoint(Vector2 point)
 	{

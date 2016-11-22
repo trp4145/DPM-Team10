@@ -133,8 +133,6 @@ public class OdometryCorrection extends Thread
         }
         
         
-        
-        
         String filename = "angleError.txt";
         
         try (   FileWriter file = new FileWriter(filename, true);
@@ -145,14 +143,7 @@ public class OdometryCorrection extends Thread
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-        
-        
-        
-        
-        
-        
-        
-        
+
         
         if (error > MIN_CORRECTION_ARC && error < MAX_CORRECTION_ARC ){
             //m_odometer.setTheta(m_odometer.getTheta()+error*CORRECTION); 
