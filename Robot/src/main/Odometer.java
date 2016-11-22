@@ -61,8 +61,8 @@ public class Odometer extends Thread
                 // using small angle approximation
                 m_theta += Math.toDegrees((distR - distL) / Robot.WHEEL_TRACK);
                 // bring into [0,360] range
-                m_theta = (m_theta + 360) % 360;
-                m_position.add(new Vector2(deltaD, 0).rotate(m_theta));
+                m_theta = Utils.normalizeAngle(m_theta);
+                m_position.add(Vector2.fromPolar(m_theta, deltaD));
             }
 
             // if finished before the next update should occur, wait the
@@ -147,7 +147,7 @@ public class Odometer extends Thread
     {
         synchronized (m_lock)
         {
-            m_theta = (theta + 360) % 360;
+            m_theta = Utils.normalizeAngle(theta);
         }
     }
 }

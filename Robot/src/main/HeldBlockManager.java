@@ -41,10 +41,10 @@ public class HeldBlockManager
         m_clawMotor.waitComplete();
 
     }
+    
     /**
      * Raises the pulley until reaches the claw reaches the top position.
      */
-    
     public void raisePulley()
     {
         rotateUntilStall(m_pulleyMotor, false, MOTOR_PULLEY_STALL_THRESHOLD);
