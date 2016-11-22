@@ -59,20 +59,17 @@ public class OdometryCorrection extends Thread
 
             if (m_leftLineDetector.detectedLine())
             {
-//            	Sound.beep();
             	m_listPos.addPoint(correctPosition(Robot.CSL_OFFSET));
             }
 
             if (m_rightLineDetector.detectedLine())
             {
-//            	Sound.beepSequence();
             	m_listPos.addPoint(correctPosition(Robot.CSR_OFFSET));
             }
             
             if (m_listPos.sampleSize()> 3 )
             {                
-                float slope = m_listPos.slope(); 
-                
+                float slope = m_listPos.slope();
                 correctAngle(slope);     
             	      	
             }
@@ -107,7 +104,7 @@ public class OdometryCorrection extends Thread
         Vector2 correction;
         if (Math.abs(dispFromLines.getX()) < Math.abs(dispFromLines.getY()))
         {
-            correction = new Vector2(dispFromLines.getX(), 0);
+            correction = new Vector2(dispFromLines.getX(), 0);            
         }
         else
         {
@@ -127,14 +124,13 @@ public class OdometryCorrection extends Thread
     private void correctAngle(float slope)
     {
         float odometerAngle = m_odometer.getTheta();
-        float error = slope - odometerAngle;
+        float error = (float) Math.toDegrees(Math.atan(slope)) - odometerAngle;
         while (Math.abs(error)> 90){
             error+= 180;
         }
         
-        
+        	
         String filename = "angleError.txt";
-        
         try (   FileWriter file = new FileWriter(filename, true);
                 BufferedWriter writer = new BufferedWriter(file);
                 PrintWriter out = new  PrintWriter(writer))

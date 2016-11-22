@@ -59,7 +59,7 @@ public class Main
         }
         else
         {
-            m_startParams.useTestData();
+        	m_startParams.useTestData();
         }
 
         // get the board
@@ -75,7 +75,7 @@ public class Main
         m_blockManager.initializeClaw();
         
         // localize
-        localize(true);
+//        localize(true);
         
         // start odometry correction now that localization is done
         m_odoCorrection.start();
@@ -83,7 +83,7 @@ public class Main
         //testing 
         m_driver.travelTo(Vector2.zero(), true);
        // m_driver.turnTo(0, true);
-//        m_driver.travelTo(new Vector2(0,180) , true);
+        m_driver.travelTo(new Vector2(0,180) , true);
 
         
         

@@ -110,34 +110,4 @@ public class LinearRegression
 		}
 		return sum;
 	} 
-
-	/**
-	 * @return the quadrant in which the direction vector should lie
-	 */
-	private int getQuadrant()
-	{
-		if (m_listPoints.size() < 2)
-		{
-			return 0; // there are not enough values to compute this 
-		}
-		
-		float direction = m_listPoints.peekLast().subtract(m_listPoints.peek()).angle();
-		
-		if (direction >= 0.f && direction < 90.0f)
-		{
-			return 1;		
-		}else if (direction >= 90.f && direction < 180.0f)
-		{
-			return 2;
-		}else if (direction >= 180.f && direction < 270.0f)
-		{
-			return 3;
-		}else
-		{
-			return 4; 			
-		}
-		
-	}
-	
-
 }
