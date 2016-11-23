@@ -1,9 +1,5 @@
 package main;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
@@ -77,7 +73,7 @@ public class Main
         
         // localize
         localize(true);
-        /*
+        
         // start odometry correction now that localization is done
         m_odoCorrection.start();
         
@@ -91,7 +87,7 @@ public class Main
         m_driver.stop();
         float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
         
-        float checkDistance = 25f;
+        float checkDistance = 5f + Robot.RADIUS;
         m_driver.goForward(blockDistance - checkDistance, true);
         m_driver.turn(-90, Robot.ROTATE_SPEED, true);
         boolean isBlueBlock = m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY() > (checkDistance + 10);
@@ -114,7 +110,7 @@ public class Main
         {
             m_blockManager.releaseBlock();
         }
-         */
+        
         // finish
         System.exit(0);
     }
@@ -128,7 +124,7 @@ public class Main
      *            if true moves the robot to the line intersection nearest to
      *            the corner after calculating its position.
      */
-    public void localize(boolean moveToOrigin)
+    private void localize(boolean moveToOrigin)
     {
         m_odometer.setTheta(0);
         m_odometer.setPosition(Vector2.zero());
@@ -190,37 +186,6 @@ public class Main
                     angle = 315 - (bearing / 2) - risingAng;
                 }
             }
-        }
-        
-        // debug output
-        String filename = "Test.txt";
-        File file = new File(filename);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename)))
-        {
-            if (!file.exists())
-            {
-                file.createNewFile();
-            }
-            writer.write("Rising Edges..." + "\n");
-            for (int i = 0; i < risingAngles.size(); i ++)
-            {
-                writer.write(i + " " + String.format("%.1f", risingAngles.get(i)) + " " + String.format("%.0f", distances.get(Utils.closestIndex(risingAngles.get(i), orientations))) + "\n");
-            }
-            writer.write("Falling Edges..." + "\n");
-            for (int i = 0; i < fallingAngles.size(); i ++)
-            {
-                writer.write(i + " " + String.format("%.1f", fallingAngles.get(i)) + " " + String.format("%.0f", distances.get(Utils.closestIndex(fallingAngles.get(i), orientations))) + "\n");
-            }
-            writer.write("bearing: " + largestBearing + "\n");
-            writer.write("angle: " + angle + "\n" );
-            writer.write("x: " + distances.get(Utils.closestIndex(Utils.normalizeAngle(180 - angle), orientations)) + " " + orientations.get(Utils.closestIndex(Utils.normalizeAngle(180 - angle), orientations)) + "\n");
-            writer.write("y: " + distances.get(Utils.closestIndex(Utils.normalizeAngle(90 - angle), orientations)) + " " + orientations.get(Utils.closestIndex(Utils.normalizeAngle(90 - angle), orientations)) + "\n");
-            for (int i = 0; i < distances.size(); i += 10)
-            {
-                writer.write(i + " " + String.format("%.1f", orientations.get(i)) + " " + String.format("%.0f", distances.get(i)) + "\n");
-            }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
         }
 
         // set odometer angle accounting for start corner
