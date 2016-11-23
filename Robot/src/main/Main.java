@@ -1,5 +1,9 @@
 package main;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
@@ -12,7 +16,7 @@ import lejos.hardware.Sound;
 public class Main
 {
     // how far the robot sees while localizing
-    private static final float LOCALIZATION_DISTANCE = 40;
+    private static final float LOCALIZATION_DISTANCE = 45;
     
     private StartParameters m_startParams;
     private Board m_board;
@@ -73,7 +77,7 @@ public class Main
         
         // localize
         localize(true);
-        
+        /*
         // start odometry correction now that localization is done
         m_odoCorrection.start();
         
@@ -110,7 +114,7 @@ public class Main
         {
             m_blockManager.releaseBlock();
         }
-
+         */
         // finish
         System.exit(0);
     }
@@ -126,6 +130,9 @@ public class Main
      */
     public void localize(boolean moveToOrigin)
     {
+        m_odometer.setTheta(0);
+        m_odometer.setPosition(Vector2.zero());
+        
         // account for the starting corner the robot is in
         int corner =  m_startParams.getStartCorner();
         float cornerAngOffset = 90 * corner;
@@ -138,11 +145,12 @@ public class Main
         // along with the angles they were captured at
         List<Float> orientations = new ArrayList<Float>();
         List<Float> distances = new ArrayList<Float>();
-        m_driver.turn(-360, Robot.LOCALIZATION_SPEED, false);
+        m_driver.turn(360, Robot.LOCALIZATION_SPEED, false);
         while (m_driver.isTravelling())
         {
-            orientations.add(m_odometer.getTheta());
+            orientations.add(Utils.normalizeAngle(m_odometer.getTheta() + 90));
             distances.add(m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY());
+            Utils.sleep(UltrasonicPoller.UPDATE_PERIOD * 2);
         }
         
         // find all the angles that correspond to when the distance rises above
@@ -179,16 +187,47 @@ public class Main
                 if (bearing > largestBearing)
                 {
                     largestBearing = bearing;
-                    angle = 315 - (bearing / 2) + (m_odometer.getTheta() - risingAng) - 90;
+                    angle = 315 - (bearing / 2) - risingAng;
                 }
             }
+        }
+        
+        // debug output
+        String filename = "Test.txt";
+        File file = new File(filename);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename)))
+        {
+            if (!file.exists())
+            {
+                file.createNewFile();
+            }
+            writer.write("Rising Edges..." + "\n");
+            for (int i = 0; i < risingAngles.size(); i ++)
+            {
+                writer.write(i + " " + String.format("%.1f", risingAngles.get(i)) + " " + String.format("%.0f", distances.get(Utils.closestIndex(risingAngles.get(i), orientations))) + "\n");
+            }
+            writer.write("Falling Edges..." + "\n");
+            for (int i = 0; i < fallingAngles.size(); i ++)
+            {
+                writer.write(i + " " + String.format("%.1f", fallingAngles.get(i)) + " " + String.format("%.0f", distances.get(Utils.closestIndex(fallingAngles.get(i), orientations))) + "\n");
+            }
+            writer.write("bearing: " + largestBearing + "\n");
+            writer.write("angle: " + angle + "\n" );
+            writer.write("x: " + distances.get(Utils.closestIndex(Utils.normalizeAngle(180 - angle), orientations)) + " " + orientations.get(Utils.closestIndex(Utils.normalizeAngle(180 - angle), orientations)) + "\n");
+            writer.write("y: " + distances.get(Utils.closestIndex(Utils.normalizeAngle(90 - angle), orientations)) + " " + orientations.get(Utils.closestIndex(Utils.normalizeAngle(90 - angle), orientations)) + "\n");
+            for (int i = 0; i < distances.size(); i += 10)
+            {
+                writer.write(i + " " + String.format("%.1f", orientations.get(i)) + " " + String.format("%.0f", distances.get(i)) + "\n");
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
 
         // set odometer angle accounting for start corner
         m_odometer.setTheta(angle + cornerAngOffset);
         
         Vector2 startPos = new Vector2(
-                distances.get(Utils.closestIndex(Utils.normalizeAngle(-angle), orientations)) - Board.TILE_SIZE,
+                distances.get(Utils.closestIndex(Utils.normalizeAngle(180 - angle), orientations)) - Board.TILE_SIZE,
                 Board.TILE_SIZE - distances.get(Utils.closestIndex(Utils.normalizeAngle(90 - angle), orientations))
                 );
         
