@@ -1,5 +1,6 @@
 package main;
 
+import java.nio.file.attribute.AclEntry.Builder;
 import java.util.*;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
@@ -11,8 +12,18 @@ import lejos.hardware.Sound;
  */
 public class Main
 {
-    // how far the robot sees while localizing
+    // the duration of the match in seconds
+    private static final long MATCH_DURATION = 5 * 60;
+    // how far the robot sees while localizing in cm
     private static final float LOCALIZATION_DISTANCE = 45;
+    // the distance in cm the robot is from a block it is identifying
+    private static final float LOCALIZATION_DISTANCE = 45;
+    // number of blocks the the robot will try to stack before dropping them off
+    private static final int BLOCK_STACK_SIZE = 1;
+    // the distance in cm ahead of the robot in which obstacles are seen 
+    private static final float OBSTACLE_DISTANCE = 6;
+    // the distance in cm the robot moves to either side of an obstacle when trying to avoid it
+    private static final float AVOID_DISTANCE = 30;
     
     private StartParameters m_startParams;
     private Board m_board;
@@ -24,6 +35,8 @@ public class Main
     private HeldBlockManager m_blockManager;
     private Display m_display;
 
+    private long m_startTime;
+    
     /**
      * Launches the main program.
      */
@@ -55,12 +68,16 @@ public class Main
             while (!m_startParams.hasRecievedData())
             {
                 m_startParams.getWifiData();
+                Utils.sleep(100);
             }
         }
         else
         {
             m_startParams.useTestData();
         }
+        
+        // record the starting time
+        m_startTime = System.currentTimeMillis();
 
         // get the board
         m_board = m_startParams.getBoard();
@@ -103,13 +120,17 @@ public class Main
             Sound.twoBeeps();
         }
         Utils.sleep(500);
-        
-        m_driver.travelTo(m_board.getBuildZoneCenter(), true);
 
-        if (m_blockManager.getBlockCount() > 0)
+        // drop off any held blocks once we have enough
+        if (m_blockManager.getBlockCount() >= BLOCK_STACK_SIZE)
         {
+            // move to the appropriate zone
+            moveWhileAvoiding(m_startParams.isBuilder() ? m_board.getBuildZoneCenter() : m_board.getDumpZoneCenter());
             m_blockManager.releaseBlock();
         }
+        
+        // we must move back to the start corner before the end of the match
+        moveWhileAvoiding(m_board.getStartPos());
         
         // finish
         System.exit(0);
@@ -128,14 +149,6 @@ public class Main
     {
         m_odometer.setTheta(0);
         m_odometer.setPosition(Vector2.zero());
-        
-        // account for the starting corner the robot is in
-        int corner =  m_startParams.getStartCorner();
-        float cornerAngOffset = 90 * corner;
-        Vector2 cornerPos = new Vector2(
-                            corner == 2 || corner == 3 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0,
-                            corner == 3 || corner == 4 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0
-                         );
 
         // start the robot turning one revolution and record the seen distances
         // along with the angles they were captured at
@@ -187,6 +200,9 @@ public class Main
                 }
             }
         }
+        
+        // account for the starting corner the robot is in
+        float cornerAngOffset = 90 * m_startParams.getStartCorner();
 
         // set odometer angle accounting for start corner
         m_odometer.setTheta(angle + cornerAngOffset);
@@ -196,7 +212,7 @@ public class Main
                 Board.TILE_SIZE - distances.get(Utils.closestIndex(Utils.normalizeAngle(90 - angle), orientations))
                 );
         
-        m_odometer.setPosition(cornerPos.add(startPos.rotate(cornerAngOffset)));
+        m_odometer.setPosition(m_board.getStartPos().add(startPos.rotate(cornerAngOffset)));
         
         Sound.beepSequenceUp();
         
@@ -206,5 +222,85 @@ public class Main
             m_driver.travelTo(Board.getNearestIntersection(m_odometer.getPosition()), true);
             m_driver.turnTo(cornerAngOffset - 90, true);
         }
+    }
+
+    /**
+     * Moves the robot to a position while avoiding obstacles on the way.
+     * 
+     * @param position
+     *            the destination point.
+     */
+    private void moveWhileAvoiding(Vector2 position)
+    {
+        m_driver.setDestination(position);
+        while (!m_driver.isNearDestination())
+        {
+            m_driver.travelTo(position, false);
+            while ( m_driver.isTravelling() &&
+                    m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX() > Robot.RADIUS + OBSTACLE_DISTANCE
+                    ) {}
+            if (m_driver.isTravelling() && Vector2.distance(position, m_odometer.getPosition()) > OBSTACLE_DISTANCE)
+            {
+                m_driver.stop();
+                avoidObstacle();
+            }
+        }
+    }
+
+    /**
+     * Moves the robot some distance to the left or right, depending on which
+     * direction is clearer of other obstacles.
+     */
+    private void avoidObstacle()
+    {
+        // check if there is no obstacle nearby on the left using the left ultrasound sensor
+        // also check if the avoidance detour will cross into a invalid position
+        Vector2 leftAvoidWaypoint = m_odometer.toWorldSpace(new Vector2(0, AVOID_DISTANCE));
+        Vector2 rightAvoidWaypoint = m_odometer.toWorldSpace(new Vector2(0, -AVOID_DISTANCE));
+
+        float leftDistance = m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY();
+        if (leftDistance > Robot.RADIUS + AVOID_DISTANCE && checkValidity(leftAvoidWaypoint))
+        {
+            m_driver.travelTo(leftAvoidWaypoint, true);
+        }
+        else
+        {
+            // if the left way around is invalid, try looking right at check if it is clear
+            m_driver.turn(-90, Robot.ROTATE_SPEED, true);
+
+            float rightDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
+            if (rightDistance > Robot.RADIUS + AVOID_DISTANCE && checkValidity(rightAvoidWaypoint))
+            {
+                m_driver.goForward(AVOID_DISTANCE, true);
+            }
+            else if (leftDistance > rightDistance) // if both invalid, pick the better bet
+            {
+                m_driver.turn(180, Robot.ROTATE_SPEED, true);
+                m_driver.goForward(AVOID_DISTANCE, true);
+            }
+        }
+    }
+
+    /**
+     * Determines if a point on the board in a valid place for the robot to go.
+     * 
+     * @param destination
+     *            the world space position to check.
+     * @return true if the destination point doesn't overlap any invalid
+     *         regions.
+     */
+    private boolean checkValidity(Vector2 destination)
+    {
+        return m_board.inBounds(destination) && !(m_startParams.isBuilder() ? m_board.inDumpZone(destination) : m_board.inBuildZone(destination));
+    }
+
+    /**
+     * Gets the time remaining in the match.
+     * 
+     * @return the time in seconds.
+     */
+    private float getTimeRemaining()
+    {
+        return (System.currentTimeMillis() - m_startTime) / 1000f;
     }
 }

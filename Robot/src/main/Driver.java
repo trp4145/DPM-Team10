@@ -67,8 +67,6 @@ public class Driver
      */
     public void travelTo(Vector2 destination, boolean blockThread)
     {
-        m_destination = destination;
-
         Vector2 currentLocation = m_odometer.getPosition();
 
         // turn to face new waypoint
@@ -130,7 +128,6 @@ public class Driver
      */
     public void stop()
     {
-        m_destination = null;
         m_leftMotor.stop(true);
         m_rightMotor.stop(false);
     }
@@ -141,6 +138,15 @@ public class Driver
     public boolean isTravelling()
     {
         return m_leftMotor.isMoving() || m_rightMotor.isMoving();
+    }
+    
+    /**
+     * Sets the driver's destination.
+     * @param dest sets the destination point.
+     */
+    public void setDestination(Vector2 dest)
+    {
+        m_destination = dest;
     }
 
     /**
