@@ -12,7 +12,8 @@ import lejos.hardware.Sound;
 public class Main
 {
     // how far the robot sees while localizing
-    private static final float LOCALIZATION_DISTANCE = 30.0f;
+
+    private static final float LOCALIZATION_DISTANCE = 45;
     
     private StartParameters m_startParams;
     private Board m_board;
@@ -70,15 +71,15 @@ public class Main
         m_usUpper.start();
         m_odometer.start();
         m_display.start();
-        
-        //initialize claw 
-        m_blockManager.initializeClaw();
-        
+                
         // localize
 //        localize(true);
         
         // start odometry correction now that localization is done
         m_odoCorrection.start();
+        
+        //initialize the claw 
+        m_blockManager.initializeClaw();
                 
         //testing 
         m_driver.travelTo(Vector2.zero(), true);
@@ -93,9 +94,9 @@ public class Main
 //        while (m_usMain.getFilteredDistance() > 80) {}
 //        Utils.sleep(1625);
 //        m_driver.stop();
-//        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
-//        
-//        float checkDistance = 25f;
+//        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();   
+//
+//        float checkDistance = 5f + Robot.RADIUS;
 //        m_driver.goForward(blockDistance - checkDistance, true);
 //        m_driver.turn(-90, Robot.ROTATE_SPEED, true);
 //        boolean isBlueBlock = m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY() > (checkDistance + 10);
@@ -114,14 +115,11 @@ public class Main
 //        
 //        m_driver.travelTo(m_board.getBuildZoneCenter(), true);
 //
-//
 //        if (m_blockManager.getBlockCount() > 0)
 //        {
 //            m_blockManager.releaseBlock();
 //        }
         
-        
-
         // finish
         System.exit(0);
     }
@@ -135,8 +133,11 @@ public class Main
      *            if true moves the robot to the line intersection nearest to
      *            the corner after calculating its position.
      */
-    public void localize(boolean moveToOrigin)
+    private void localize(boolean moveToOrigin)
     {
+        m_odometer.setTheta(0);
+        m_odometer.setPosition(Vector2.zero());
+        
         // account for the starting corner the robot is in
         int corner =  m_startParams.getStartCorner();
         float cornerAngOffset = 90 * corner;
@@ -149,11 +150,12 @@ public class Main
         // along with the angles they were captured at
         List<Float> orientations = new ArrayList<Float>();
         List<Float> distances = new ArrayList<Float>();
-        m_driver.turn(-360, Robot.LOCALIZATION_SPEED, false);
+        m_driver.turn(360, Robot.LOCALIZATION_SPEED, false);
         while (m_driver.isTravelling())
         {
-            orientations.add(m_odometer.getTheta());
+            orientations.add(Utils.normalizeAngle(m_odometer.getTheta() + 90));
             distances.add(m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY());
+            Utils.sleep(UltrasonicPoller.UPDATE_PERIOD * 2);
         }
         
         // find all the angles that correspond to when the distance rises above
@@ -190,7 +192,7 @@ public class Main
                 if (bearing > largestBearing)
                 {
                     largestBearing = bearing;
-                    angle = 315 - (bearing / 2) + (m_odometer.getTheta() - risingAng) - 90;
+                    angle = 315 - (bearing / 2) - risingAng;
                 }
             }
         }
@@ -199,7 +201,7 @@ public class Main
         m_odometer.setTheta(angle + cornerAngOffset);
         
         Vector2 startPos = new Vector2(
-                distances.get(Utils.closestIndex(Utils.normalizeAngle(-angle), orientations)) - Board.TILE_SIZE,
+                distances.get(Utils.closestIndex(Utils.normalizeAngle(180 - angle), orientations)) - Board.TILE_SIZE,
                 Board.TILE_SIZE - distances.get(Utils.closestIndex(Utils.normalizeAngle(90 - angle), orientations))
                 );
         

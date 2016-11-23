@@ -33,7 +33,7 @@ public class Robot
     public static final float   WHEEL_RADIUS    = 2.13f;                    // radius of wheels in cm
     public static final float   WHEEL_TRACK     = 16.0f;                    // distance between wheels in cm
     public static final Vector2 US_MAIN_OFFSET  = new Vector2(5,0);         // the position offset of the main ultrasound sensor from the robot center in cm
-    public static final Vector2 US_UPPER_OFFSET = new Vector2(-4,9);        // the position offset of the upper ultrasound sensor from the robot center in cm
+    public static final Vector2 US_UPPER_OFFSET = new Vector2(-1,9);        // the position offset of the upper ultrasound sensor from the robot center in cm
     public static final Vector2 CSL_OFFSET      = new Vector2(-8.6f,8.9f);  // the position offset of the left color sensor from the robot center in cm
     public static final Vector2 CSR_OFFSET      = new Vector2(-8.6f,-8.9f); // the position offset of the right color sensor from the robot center in cm
     

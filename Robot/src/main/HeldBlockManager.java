@@ -48,7 +48,6 @@ public class HeldBlockManager
     public void raisePulley()
     {
         rotateUntilStall(m_pulleyMotor, false, MOTOR_PULLEY_STALL_THRESHOLD);
-
     }
 
     /**

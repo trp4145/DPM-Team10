@@ -37,12 +37,12 @@ public class StartParameters
         m_data.put("CSC", 3);   // Collector Start Corner [1,4]
         m_data.put("LRZx", 0);  // Red Zone Lower Left Corner x     [-1,11]
         m_data.put("LRZy", 4);  // Red Zone Lower Left Corner y     [-1,11]
-        m_data.put("URZx", 2);  // Red Zone Upper Right Corner x    [-1,11]
-        m_data.put("URZy", 6);  // Red Zone Upper Right Corner y    [-1,11]
-        m_data.put("LGZx", 0);  // Green Zone Lower Left Corner x   [-1,11]
+        m_data.put("URZx", 1);  // Red Zone Upper Right Corner x    [-1,11]
+        m_data.put("URZy", 5);  // Red Zone Upper Right Corner y    [-1,11]
+        m_data.put("LGZx", 1);  // Green Zone Lower Left Corner x   [-1,11]
         m_data.put("LGZy", 4);  // Green Zone Lower Left Corner y   [-1,11]
         m_data.put("UGZx", 2);  // Green Zone Upper Right Corner x  [-1,11]
-        m_data.put("UGZy", 6);  // Green Zone Upper Right Corner y  [-1,11]
+        m_data.put("UGZy", 5);  // Green Zone Upper Right Corner y  [-1,11]
     }
     
     /**
