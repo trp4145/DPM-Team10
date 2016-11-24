@@ -16,8 +16,10 @@ import lejos.hardware.Sound;
  */
 public class OdometryCorrection extends Thread
 {
-    // how much the corrected values override the original values
-    private static final float CORRECTION_WEIGHT = .4f;
+    // how much the corrected values override the original values for position
+    private static final float CORRECTION_WEIGHT_POSITION = .6f;
+    // how much the corrected values override the original values for the angle
+    private static final float CORRECTION_WEIGHT_ANGLE = .6f;
     //Maximum error that will be corrected
     private static final float CORRECTION_ARC = 15.0f;
     //min angle change that is considered a turn 
@@ -27,7 +29,8 @@ public class OdometryCorrection extends Thread
     private LineDetector m_rightLineDetector;
     private LineDetector m_leftLineDetector;
     private LinearRegression m_listPos;
-    private float m_firstAngle; 
+    private float m_firstAngle;
+    private int m_listSize; 
     
     /**
      * Constructor.
@@ -40,8 +43,8 @@ public class OdometryCorrection extends Thread
         m_odometer = odometer;
         m_rightLineDetector = new LineDetector(Robot.COLOR_RIGHT);
         m_leftLineDetector = new LineDetector(Robot.COLOR_LEFT);
-        
         m_listPos = new LinearRegression();   
+        m_listSize = 0; 
         
     }
 
@@ -70,10 +73,10 @@ public class OdometryCorrection extends Thread
             	m_listPos.addPoint(correctPosition(Robot.CSR_OFFSET));
             }
             
-            if (m_listPos.sampleSize()> 3 )
+            if (m_listSize != m_listPos.sampleSize() && m_listPos.sampleSize()> 3 )
             {                
-                float slope = m_listPos.slope();                
-                if (correctAngle(slope)){
+            	m_listSize = m_listPos.sampleSize();               
+                if (correctAngle(m_listPos.slope())){
                 	
                 }else{
                 	Sound.beep();
@@ -104,7 +107,7 @@ public class OdometryCorrection extends Thread
         // get the displacement of the line intersection from the color sensor
         Vector2 dispFromLines = intersection.subtract(colorSensorPos);
         // reduce the displacement error so that the correction is smaller
-        dispFromLines.scale(CORRECTION_WEIGHT);
+        dispFromLines.scale(CORRECTION_WEIGHT_POSITION);
 
         // correct the axis that is closer to a line, as this is likely the line
         // that triggered the sensor

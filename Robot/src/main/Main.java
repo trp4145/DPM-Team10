@@ -81,17 +81,26 @@ public class Main
         //initialize the claw 
         m_blockManager.initializeClaw();
                 
-        //testing 
-        m_driver.travelTo(new Vector2(0,90) , true);
+        List<Vector2> waypoints = new ArrayList<Vector2>();
+        for (int i= 0 ; i <4;i++ ){
+            waypoints.add(new Vector2(60, 0));
+            waypoints.add(new Vector2(60, 60));
+            waypoints.add(new Vector2(0, 0));
+            waypoints.add(new Vector2(0, 60));
+            waypoints.add(new Vector2(60, 0));
+            waypoints.add(new Vector2(0, 0));
+        }
+
+        waypoints.add(new Vector2(0, 0));
+
+        //traveling to destination
+        while (waypoints.size() > 0)
+        {
+        	m_driver.travelTo(waypoints.get(0),true);
+            waypoints.remove(0);
+        }
         
-        //go back to start 
-        m_driver.travelTo(new Vector2(0,0), true);
-        
-        //face down x-axis
         m_driver.turnTo(0, true);
-        Sound.beepSequence();
-        m_driver.travelTo(new Vector2(0,0), true);
-        m_driver.turnTo(180, true);
         
         
         
