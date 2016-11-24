@@ -88,17 +88,10 @@ public class Main
         m_driver.travelTo(new Vector2(0,0), true);
         
         //face down x-axis
-        m_driver.turnTo(45, true);
-//        Sound.beepSequence();
-
-        m_driver.turnTo(135, true);
-//        Sound.beepSequence();
-       
-        m_driver.turnTo(225, true);
-//        Sound.beepSequence();
-        
-        m_driver.turnTo(315, true);
-//        Sound.beepSequence();
+        m_driver.turnTo(0, true);
+        Sound.beepSequence();
+        m_driver.travelTo(new Vector2(0,0), true);
+        m_driver.turnTo(180, true);
         
         
         

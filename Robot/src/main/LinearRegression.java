@@ -33,12 +33,18 @@ public class LinearRegression
 		m_listPoints.add(point);
 	}
 	
-	
-	public Vector2 getFirst(){
+	/**
+	 * @return the first point in the list
+	 */
+	public Vector2 getFirst()
+	{
 		return m_listPoints.peek();
 	}
-	
-	public Vector2 getLast(){
+	/**
+	 * @return the last point in the list
+	 */
+	public Vector2 getLast()
+	{
 		return m_listPoints.peekLast();
 	}
 	

@@ -18,14 +18,16 @@ public class OdometryCorrection extends Thread
 {
     // how much the corrected values override the original values
     private static final float CORRECTION_WEIGHT = .4f;
-    //error before correcting 
-    private static final float CORRECTION_ARC = 5.0f;
-    private static final float MIN_TURNING_ANGLE = 2.0f;
+    //Maximum error that will be corrected
+    private static final float CORRECTION_ARC = 15.0f;
+    //min angle change that is considered a turn 
+    private static final float MIN_TURNING_ANGLE = 1.0f;
 
     private Odometer m_odometer;
     private LineDetector m_rightLineDetector;
     private LineDetector m_leftLineDetector;
     private LinearRegression m_listPos;
+    private float m_firstAngle; 
     
     /**
      * Constructor.
@@ -39,7 +41,8 @@ public class OdometryCorrection extends Thread
         m_rightLineDetector = new LineDetector(Robot.COLOR_RIGHT);
         m_leftLineDetector = new LineDetector(Robot.COLOR_LEFT);
         
-        m_listPos = new LinearRegression();        
+        m_listPos = new LinearRegression();   
+        
     }
 
     /**
@@ -50,13 +53,13 @@ public class OdometryCorrection extends Thread
         // start the line detector threads
         m_rightLineDetector.start();
         m_leftLineDetector.start();
+        m_firstAngle = m_odometer.getTheta();
 
         long updateStart;
-        float angle = m_odometer.getTheta(); 
         while (true)
         {
             updateStart = System.currentTimeMillis();
-
+            
             if (m_leftLineDetector.detectedLine())
             {
             	m_listPos.addPoint(correctPosition(Robot.CSL_OFFSET));
@@ -70,7 +73,11 @@ public class OdometryCorrection extends Thread
             if (m_listPos.sampleSize()> 3 )
             {                
                 float slope = m_listPos.slope();                
-                correctAngle(slope);     
+                if (correctAngle(slope)){
+                	
+                }else{
+                	Sound.beep();
+                }
             	      	
             }
 
@@ -110,10 +117,10 @@ public class OdometryCorrection extends Thread
         {
             correction = new Vector2(0, dispFromLines.getY());
         }
-        Vector2 newPos = m_odometer.getPosition().add(correction);
-        m_odometer.setPosition(newPos);
+   
+        m_odometer.setPosition(m_odometer.getPosition().add(correction));
         
-        return newPos;
+        return m_odometer.getPosition();
     }
     
     /**
@@ -121,11 +128,11 @@ public class OdometryCorrection extends Thread
      * @param angle
      *              The new angle to which we want to set odometer correction
      */
-    private void correctAngle(float slope)
+    private boolean correctAngle(float slope)
     {
         float error = (float) Math.toDegrees(Math.atan(slope)) - m_odometer.getTheta();
         while (Math.abs(error)> 90){
-            error+= 90;
+            error+= 180;
         }
         
         String filename = "slopeEstimated.txt";
@@ -133,29 +140,30 @@ public class OdometryCorrection extends Thread
                 BufferedWriter writer = new BufferedWriter(file);
                 PrintWriter out = new  PrintWriter(writer))
         {
-            out.println(m_odometer.getTheta()+"\t"+error);
+            out.println(m_odometer.getTheta()+"\t"+error+"\t"+m_listPos.sampleSize());
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
                
-        if (!changedAngle() && Math.abs(error)<CORRECTION_ARC){
+        if (!changedAngle() && Math.abs(error)<CORRECTION_ARC)
+        {
             m_odometer.setTheta(m_odometer.getTheta()+error);
+            return true;
         }
-        else if (  Math.abs(error)>= CORRECTION_ARC){
-        	Sound.beepSequence();
-        }else{
-        	Sound.buzz();
-        }
-    }
+        return false; 
+}
     
     /**
-     * @return true if the angle has changed more than the acceptable correction Arc
+     * @return true if the angle has changed more than the minimum turning angle
      */
     private boolean changedAngle()
     {
     	Vector2 last = m_listPos.getLast();
-    	if (Vector2.angleBetweenVectors(m_listPos.getFirst(), m_odometer.getPosition())> MIN_TURNING_ANGLE){
+    	if (Vector2.angleBetweenVectors(Vector2.fromPolar(m_firstAngle, 1), Vector2.fromPolar(m_odometer.getTheta(),1))> MIN_TURNING_ANGLE)
+    	{
     		m_listPos.clearList();
+    		m_firstAngle = m_odometer.getTheta();
+//    		Sound.beep();    		
     		m_listPos.addPoint(last);
     		return true; 
     	}
