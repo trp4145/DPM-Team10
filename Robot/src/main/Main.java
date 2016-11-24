@@ -82,10 +82,23 @@ public class Main
         m_blockManager.initializeClaw();
                 
         //testing 
-        m_driver.travelTo(Vector2.zero(), true);
-       // m_driver.turnTo(0, true);
-        m_driver.travelTo(new Vector2(0,180) , true);
+        m_driver.travelTo(new Vector2(0,90) , true);
+        
+        //go back to start 
+        m_driver.travelTo(new Vector2(0,0), true);
+        
+        //face down x-axis
+        m_driver.turnTo(45, true);
+//        Sound.beepSequence();
 
+        m_driver.turnTo(135, true);
+//        Sound.beepSequence();
+       
+        m_driver.turnTo(225, true);
+//        Sound.beepSequence();
+        
+        m_driver.turnTo(315, true);
+//        Sound.beepSequence();
         
         
         

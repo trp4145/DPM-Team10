@@ -11,15 +11,16 @@ import java.util.LinkedList;
  */
 public class LinearRegression
 {
-	
+
 	private LinkedList<Vector2> m_listPoints;
-	private float m_slope; 
+	
 	/**
 	 * Constructor
 	 */
 	public LinearRegression()
 	{
 		m_listPoints = new LinkedList<Vector2>();
+
 	}
 	
 	/**
@@ -30,6 +31,15 @@ public class LinearRegression
 	public void addPoint(Vector2 point)
 	{
 		m_listPoints.add(point);
+	}
+	
+	
+	public Vector2 getFirst(){
+		return m_listPoints.peek();
+	}
+	
+	public Vector2 getLast(){
+		return m_listPoints.peekLast();
 	}
 	
 	/**

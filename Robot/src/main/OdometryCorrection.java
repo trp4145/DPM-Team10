@@ -19,8 +19,8 @@ public class OdometryCorrection extends Thread
     // how much the corrected values override the original values
     private static final float CORRECTION_WEIGHT = .4f;
     //error before correcting 
-    private static final float MIN_CORRECTION_ARC = 0.5f;
-    private static final float MAX_CORRECTION_ARC = 1.5f;
+    private static final float CORRECTION_ARC = 5.0f;
+    private static final float MIN_TURNING_ANGLE = 2.0f;
 
     private Odometer m_odometer;
     private LineDetector m_rightLineDetector;
@@ -69,7 +69,7 @@ public class OdometryCorrection extends Thread
             
             if (m_listPos.sampleSize()> 3 )
             {                
-                float slope = m_listPos.slope();
+                float slope = m_listPos.slope();                
                 correctAngle(slope);     
             	      	
             }
@@ -123,31 +123,44 @@ public class OdometryCorrection extends Thread
      */
     private void correctAngle(float slope)
     {
-        float odometerAngle = m_odometer.getTheta();
-        float error = (float) Math.toDegrees(Math.atan(slope)) - odometerAngle;
+        float error = (float) Math.toDegrees(Math.atan(slope)) - m_odometer.getTheta();
         while (Math.abs(error)> 90){
-            error+= 180;
+            error+= 90;
         }
         
-        	
-        String filename = "angleError.txt";
+        String filename = "slopeEstimated.txt";
         try (   FileWriter file = new FileWriter(filename, true);
                 BufferedWriter writer = new BufferedWriter(file);
                 PrintWriter out = new  PrintWriter(writer))
         {
-            out.println(error);
+            out.println(m_odometer.getTheta()+"\t"+error);
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-
-        
-        if (error > MIN_CORRECTION_ARC && error < MAX_CORRECTION_ARC ){
-            //m_odometer.setTheta(m_odometer.getTheta()+error*CORRECTION); 
-        }else if (error > MAX_CORRECTION_ARC ){
-            Sound.buzz();
-            m_listPos.clearList();
+               
+        if (!changedAngle() && Math.abs(error)<CORRECTION_ARC){
+            m_odometer.setTheta(m_odometer.getTheta()+error);
         }
-
+        else if (  Math.abs(error)>= CORRECTION_ARC){
+        	Sound.beepSequence();
+        }else{
+        	Sound.buzz();
+        }
+    }
+    
+    /**
+     * @return true if the angle has changed more than the acceptable correction Arc
+     */
+    private boolean changedAngle()
+    {
+    	Vector2 last = m_listPos.getLast();
+    	if (Vector2.angleBetweenVectors(m_listPos.getFirst(), m_odometer.getPosition())> MIN_TURNING_ANGLE){
+    		m_listPos.clearList();
+    		m_listPos.addPoint(last);
+    		return true; 
+    	}
+    	
+    	return false;    	
     }
 
     
