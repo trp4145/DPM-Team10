@@ -137,7 +137,7 @@ public class Main
         if (m_blockManager.getBlockCount() > 0)
         {
             m_blockManager.releaseBlock();
-//        }
+        }
 
         Utils.sleep(500);
 
