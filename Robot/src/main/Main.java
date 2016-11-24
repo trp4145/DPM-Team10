@@ -102,6 +102,7 @@ public class Main
         // localize
         localize(true);
         
+        
         // start odometry correction now that localization is done
         m_odoCorrection.start();
         

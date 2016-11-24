@@ -1,13 +1,5 @@
 package main;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-
-import lejos.hardware.Sound;
-
 /**
  * Contains the methods responsible for correcting the odometer based on the
  * inputs received by two color sensors.
@@ -18,8 +10,6 @@ public class OdometryCorrection extends Thread
 {
     // how much the corrected values override the original values for position
     private static final float CORRECTION_WEIGHT_POSITION = .6f;
-    // how much the corrected values override the original values for the angle
-    private static final float CORRECTION_WEIGHT_ANGLE = .6f;
     //Maximum error that will be corrected
     private static final float CORRECTION_ARC = 15.0f;
     //min angle change that is considered a turn 
@@ -78,10 +68,7 @@ public class OdometryCorrection extends Thread
             	m_listSize = m_listPos.sampleSize();               
                 if (correctAngle(m_listPos.slope())){
                 	
-                }else{
-                	Sound.beep();
-                }
-            	      	
+                }            	      	
             }
 
             Utils.sleepToNextPeroid(LineDetector.UPDATE_PERIOD, updateStart);
@@ -137,16 +124,6 @@ public class OdometryCorrection extends Thread
         while (Math.abs(error)> 90){
             error+= 180;
         }
-        
-        String filename = "slopeEstimated.txt";
-        try (   FileWriter file = new FileWriter(filename, true);
-                BufferedWriter writer = new BufferedWriter(file);
-                PrintWriter out = new  PrintWriter(writer))
-        {
-            out.println(m_odometer.getTheta()+"\t"+error+"\t"+m_listPos.sampleSize());
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
                
         if (!changedAngle() && Math.abs(error)<CORRECTION_ARC)
         {
@@ -165,8 +142,7 @@ public class OdometryCorrection extends Thread
     	if (Vector2.angleBetweenVectors(Vector2.fromPolar(m_firstAngle, 1), Vector2.fromPolar(m_odometer.getTheta(),1))> MIN_TURNING_ANGLE)
     	{
     		m_listPos.clearList();
-    		m_firstAngle = m_odometer.getTheta();
-//    		Sound.beep();    		
+    		m_firstAngle = m_odometer.getTheta();  		
     		m_listPos.addPoint(last);
     		return true; 
     	}
