@@ -13,7 +13,7 @@ import wifi.WifiConnection;
 public class StartParameters
 {
     // the IP address of the computer running the server application
-    private static final String SERVER_IP = "192.168.2.3";
+    private static final String SERVER_IP = "192.168.43.76";
     // our project team number
     private static final int TEAM_NUMBER = 10;
 
@@ -37,12 +37,12 @@ public class StartParameters
         m_data.put("CSC", 3);   // Collector Start Corner [1,4]
         m_data.put("LRZx", 0);  // Red Zone Lower Left Corner x     [-1,11]
         m_data.put("LRZy", 4);  // Red Zone Lower Left Corner y     [-1,11]
-        m_data.put("URZx", 2);  // Red Zone Upper Right Corner x    [-1,11]
-        m_data.put("URZy", 6);  // Red Zone Upper Right Corner y    [-1,11]
-        m_data.put("LGZx", 0);  // Green Zone Lower Left Corner x   [-1,11]
+        m_data.put("URZx", 1);  // Red Zone Upper Right Corner x    [-1,11]
+        m_data.put("URZy", 5);  // Red Zone Upper Right Corner y    [-1,11]
+        m_data.put("LGZx", 1);  // Green Zone Lower Left Corner x   [-1,11]
         m_data.put("LGZy", 4);  // Green Zone Lower Left Corner y   [-1,11]
         m_data.put("UGZx", 2);  // Green Zone Upper Right Corner x  [-1,11]
-        m_data.put("UGZy", 6);  // Green Zone Upper Right Corner y  [-1,11]
+        m_data.put("UGZy", 5);  // Green Zone Upper Right Corner y  [-1,11]
     }
     
     /**
@@ -117,7 +117,8 @@ public class StartParameters
                 m_data.get("LGZx"),
                 m_data.get("LGZy"),
                 m_data.get("UGZx"),
-                m_data.get("UGZy")
+                m_data.get("UGZy"),
+                getStartCorner()
                 );
     }
 }

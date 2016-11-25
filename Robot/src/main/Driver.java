@@ -9,14 +9,9 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
  */
 public class Driver
 {
-    // how much error is allowed between the odometer position and destination position.
-    private static final float POSITION_TOLERANCE = 2.0f;
-    
     private EV3LargeRegulatedMotor m_leftMotor;
     private EV3LargeRegulatedMotor m_rightMotor;
     private Odometer m_odometer;
-    
-    private Vector2 m_destination;
     
     /**
      * Constructor.
@@ -67,12 +62,10 @@ public class Driver
      */
     public void travelTo(Vector2 destination, boolean blockThread)
     {
-        m_destination = destination;
-
         Vector2 currentLocation = m_odometer.getPosition();
 
         // turn to face new waypoint
-        turnTo(Vector2.subtract(destination, currentLocation).angle(), blockThread);
+        turnTo(Vector2.subtract(destination, currentLocation).angle(), Robot.ROTATE_SPEED, blockThread);
 
         // a short pause to allow time for distance sensor to get some values
         Utils.sleep(350);
@@ -87,16 +80,18 @@ public class Driver
      * 
      * @param targetAngle
      *            the world space angle to face in degrees.
+     * @param speed
+     *            The speed of rotation.
      * @param blockThread
      *            If true this call returns only after the turn is complete.
      */
-    public void turnTo(float targetAngle, boolean blockThread)
+    public void turnTo(float targetAngle, int speed, boolean blockThread)
     {
         float bearing = Utils.toBearing(targetAngle - m_odometer.getTheta());
 
         // set rotating speeds
-        m_leftMotor.setSpeed(Robot.ROTATE_SPEED);
-        m_rightMotor.setSpeed(Robot.ROTATE_SPEED);
+        m_leftMotor.setSpeed(speed);
+        m_rightMotor.setSpeed(speed);
 
         // rotate the motors to complete the motion
         m_leftMotor.rotate(-convertAngle(Robot.WHEEL_RADIUS, bearing), true);
@@ -130,7 +125,6 @@ public class Driver
      */
     public void stop()
     {
-        m_destination = null;
         m_leftMotor.stop(true);
         m_rightMotor.stop(false);
     }
@@ -141,14 +135,6 @@ public class Driver
     public boolean isTravelling()
     {
         return m_leftMotor.isMoving() || m_rightMotor.isMoving();
-    }
-
-    /**
-     * @return true if the robot is near to its destination.
-     */
-    public boolean isNearDestination()
-    {
-        return Vector2.distance(m_destination, m_odometer.getPosition()) < POSITION_TOLERANCE;
     }
 
     /**

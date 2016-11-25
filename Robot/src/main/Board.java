@@ -15,15 +15,16 @@ public class Board
     public static final float TILE_SIZE = 30.4f;
     // the distance the robot tries to leave between itself and the walls to
     // prevent a collision in cm
-    public static final float WALL_BUFFER = 5.0f;
+    public static final float WALL_BUFFER = 2.0f;
     // the distance the robot tries to leave between itself and a zone to
     // prevent entering in cm
-    public static final float ZONE_BUFFER = 5.0f;
+    public static final float ZONE_BUFFER = 2.0f;
 
     // various zone rectangles
     private Rectangle m_board;
     private Rectangle m_dumpZone;
     private Rectangle m_buildZone;
+    private Vector2 m_startCornerPos;
 
     /**
      * Constructor for the board.
@@ -44,8 +45,10 @@ public class Board
      *            the green zone upper corner x position.
      * @param ugzy
      *            the green zone upper corner y position.
+     * @param startCorner
+     *            the starting corner number.
      */
-    public Board(int lrzx, int lrzy, int urzx, int urzy, int lgzx, int lgzy, int ugzx, int ugzy)
+    public Board(int lrzx, int lrzy, int urzx, int urzy, int lgzx, int lgzy, int ugzx, int ugzy, int startCorner)
     {
         Vector2 wallLowerCorner = Vector2.one().scale(-TILE_SIZE);
         Vector2 wallUpperCorner = Vector2.one().scale(TILE_SIZE * (TILE_COUNT - 1));
@@ -58,6 +61,10 @@ public class Board
         Vector2 buildLowerCorner = new Vector2(lgzx, lgzy).scale(TILE_SIZE);
         Vector2 buildUpperCorner = new Vector2(ugzx, ugzy).scale(TILE_SIZE);
         m_buildZone = Utils.toRect(buildLowerCorner, buildUpperCorner);
+        
+        m_startCornerPos = new Vector2(
+                            startCorner == 2 || startCorner == 3 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0,
+                            startCorner == 3 || startCorner == 4 ? (Board.TILE_COUNT - 2) * Board.TILE_SIZE : 0);
     }
 
     /**
@@ -163,5 +170,13 @@ public class Board
     public Vector2 getDumpZoneCenter()
     {
         return new Vector2((float) m_dumpZone.getCenterX(), (float) m_dumpZone.getCenterY());
+    }
+
+    /**
+     * Gets the position of the line intersection nearest to the starting corner.
+     */
+    public Vector2 getStartPos()
+    {
+        return m_startCornerPos;
     }
 }
