@@ -112,8 +112,11 @@ public class Main
         // main logic loop
         while (getTimeRemaining() > 20)
         {
-            // search for blocks
-            searchForBlocks(45, 90);
+            // search for blocks until we are facing a probably block
+            while (!searchForBlocks(45, 90))
+            {
+                
+            }
             
             // if there is an object in front of the robot, identify it
             float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
@@ -358,8 +361,9 @@ public class Main
      *            around.
      * @param searchWidth
      *            how many degrees the sweep will cover.
+     * @return true if the robot has approached a block.
      */
-    private void searchForBlocks(float searchDirection, float searchWidth)
+    private boolean searchForBlocks(float searchDirection, float searchWidth)
     {
         // turn to face the start angle of the sweep
         float startAngle = Utils.normalizeAngle(searchDirection - (searchWidth / 2));
@@ -377,89 +381,54 @@ public class Main
             Utils.sleep(UltrasonicPoller.UPDATE_PERIOD);
         }
 
-        // analyze data
-        analyze(angleDistanceMap);
-    }
-
-    /**
-     * This method is called from the searchForBlocks method to analyze the data
-     * it collected.
-     * 
-     * @param data
-     *            a map containing all the measured angles and their
-     *            corresponding distances.
-     */
-    private void analyze(Map<Float,Float> data)
-    {
-        float currentAngle;
-        float currentDistance;
-        float previousAngle;
-        float previousDistance;
-        float minDistanceGap = 10; // gap > minGap to be considered a
-                                   // discontinuity
-        float absGap;
-        int discontinuities = 0; // number of discontinuities
-        Map<Float,Float> sortedData = new TreeMap<Float,Float>(data);
-        Iterator<Map.Entry<Float,Float>> entries;
-        Map.Entry<Float,Float> entry;
-        Map<Float,Float> discontinuitiesMap = new HashMap<Float,Float>();
-
-        // DEBUG
-        // writes to file for debugging purposes
+        // sort the map by increasing angle
+        Map<Float,Float> sortedData = new TreeMap<Float,Float>(angleDistanceMap);
         writeToFile(sortedData, "sorted.txt");
 
-        // sanitized data
-        // means no incorrect discontinuities are there
-        // new Map passed by reference
+        // sanitize data to remove incorrect discontinuities
         Map<Float,Float> sanitizedData = sanitize(sortedData);
-
         writeToFile(sanitizedData, "sanitized.txt");
 
-        // set the iterator to the sanitized data
-        entries = sanitizedData.entrySet().iterator();
-
-        // set previousAngle and previousDistance to first data point
-        entry = entries.next();
-        previousAngle = entry.getKey();
-        previousDistance = entry.getValue();
-
-        // need to sort the data in the hasmap.
+        // set the iterator to the first sanitized data point
+        Iterator<Map.Entry<Float,Float>> entries = sanitizedData.entrySet().iterator();
+        Map.Entry<Float,Float> entry = entries.next();
+        float previousDistance = entry.getValue();
 
         // check for discontinuities
+        Map<Float,Float> discontinuitiesMap = new HashMap<Float,Float>();
+        
         while (entries.hasNext())
         {
             entry = entries.next();
-            currentAngle = entry.getKey();
-            currentDistance = entry.getValue();
+            float currentAngle = entry.getKey();
+            float currentDistance = entry.getValue();
 
-            absGap = Math.abs(currentDistance - previousDistance);
-
-            // if there is a discontinuity
-            // increase the discontinuity counter
-            // and store the data point on another Map
-            if (absGap > minDistanceGap)
+            // if there is a discontinuity increase the discontinuity counter
+            // and store the data point on another map
+            if (Math.abs(currentDistance - previousDistance) > 10)
             {
-                discontinuities += 1;
                 discontinuitiesMap.put(currentAngle, currentDistance);
             }
 
             // updating for next iteration
-            previousAngle = currentAngle;
             previousDistance = currentDistance;
         }
 
+        // sort the discontinuities map
         Map<Float,Float> sortedDiscontinuities = new TreeMap<Float,Float>(discontinuitiesMap);
 
-        if (discontinuities == 0)
+        // take action based on the number of possible blocks
+        if (sortedDiscontinuities.size() == 0)
         {
             Sound.buzz();
             noDiscontinuities(sortedData);
         }
-        else if (discontinuities == 1)
+        else if (sortedDiscontinuities.size() == 1)
         {
             Sound.beep();
             writeToFile(sortedDiscontinuities, "disc1.txt");
             oneDiscontinuity(sortedData, sortedDiscontinuities);
+            return true;
         }
         else
         {
@@ -469,11 +438,14 @@ public class Main
             if (moreThanOneBlock(sortedDiscontinuities))
             {
                 Sound.beepSequenceUp();
-                return;
             }
-
-            manyDiscontinuities(sortedDiscontinuities);
+            else
+            {
+                manyDiscontinuities(sortedDiscontinuities);
+                return true;
+            }
         }
+        return false;
     }
 
     /**
@@ -581,13 +553,12 @@ public class Main
      * know that there is more than one block around the robot.
      * 
      * @param sortedDiscontinuities
-     * @return Wether there is more than one block in front of the robot.
+     * @return Whether there is more than one block in front of the robot.
      */
     private boolean moreThanOneBlock(Map<Float,Float> sortedDiscontinuities)
     {
         float currentAngle;
         float previousAngle;
-        float angleGap;
         float oneBlockAngle = 80;
         Iterator<Map.Entry<Float,Float>> entries;
         Map.Entry<Float,Float> entry;
@@ -602,9 +573,7 @@ public class Main
             entry = entries.next();
             currentAngle = entry.getKey();
 
-            angleGap = Math.abs(currentAngle - previousAngle);
-
-            if (angleGap > oneBlockAngle)
+            if (Math.abs(currentAngle - previousAngle) > oneBlockAngle)
             {
                 writeDebug("Detected two blocks. Abort.");
                 return true;
