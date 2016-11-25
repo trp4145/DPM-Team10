@@ -15,10 +15,10 @@ public class Board
     public static final float TILE_SIZE = 30.4f;
     // the distance the robot tries to leave between itself and the walls to
     // prevent a collision in cm
-    public static final float WALL_BUFFER = 5.0f;
+    public static final float WALL_BUFFER = 2.0f;
     // the distance the robot tries to leave between itself and a zone to
     // prevent entering in cm
-    public static final float ZONE_BUFFER = 5.0f;
+    public static final float ZONE_BUFFER = 2.0f;
 
     // various zone rectangles
     private Rectangle m_board;
