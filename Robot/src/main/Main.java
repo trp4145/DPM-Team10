@@ -15,11 +15,10 @@ import lejos.hardware.Sound;
  */
 public class Main
 {
+
     // the duration of the match in seconds
     private static final long MATCH_DURATION = 5 * 60;
     // how far the robot sees while localizing in cm
-    private static final float LOCALIZATION_DISTANCE = 45;
-    // the distance in cm the robot is from a block it is identifying
     private static final float LOCALIZATION_DISTANCE = 45;
     // number of blocks the the robot will try to stack before dropping them off
     private static final int BLOCK_STACK_SIZE = 1;
@@ -85,7 +84,7 @@ public class Main
         }
         else
         {
-            m_startParams.useTestData();
+        	m_startParams.useTestData();
         }
         
         // record the starting time
@@ -99,14 +98,15 @@ public class Main
         m_usUpper.start();
         m_odometer.start();
         m_display.start();
-        
+                
         // localize
         localize(true);
+        
         
         // start odometry correction now that localization is done
         m_odoCorrection.start();
         
-        // initialize the claw
+        //initialize the claw 
         m_blockManager.initializeClaw();
         
         // temp block search
@@ -114,8 +114,8 @@ public class Main
         while (m_usMain.getFilteredDistance() > 80) {}
         Utils.sleep(1625);
         m_driver.stop();
-        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
-        
+        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();   
+
         float checkDistance = 5f + Robot.RADIUS;
         m_driver.goForward(blockDistance - checkDistance, true);
         m_driver.turn(-90, Robot.ROTATE_SPEED, true);
@@ -131,6 +131,15 @@ public class Main
         {
             Sound.twoBeeps();
         }
+        Utils.sleep(500);
+        
+        m_driver.travelTo(m_board.getBuildZoneCenter(), true);
+
+        if (m_blockManager.getBlockCount() > 0)
+        {
+            m_blockManager.releaseBlock();
+        }
+
         Utils.sleep(500);
 
         // drop off any held blocks once we have enough
