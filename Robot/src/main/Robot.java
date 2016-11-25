@@ -42,6 +42,7 @@ public class Robot
     public static final int     MOVE_SPEED          = 150;      // maximum wheel rotation speed while moving forwards in deg/sec
     public static final int     ROTATE_SPEED        = 100;      // maximum wheel rotation speed while turning in deg/sec
     public static final int     LOCALIZATION_SPEED  = 75;       // maximum wheel rotation speed while localizing in deg/sec
+    public static final int     SEARCH_SPEED        = 50;       // maximum wheel rotation speed while searching in deg/sec
     public static final int     CLAW_ACCELERATION   = 3500;     // acceleration of the claw motors
     public static final int     CLAW_SPEED          = 50;       // speed of the claw motor in deg/sec
     public static final int     PULLEY_SPEED        = 100;      // speed of the pulley motor in deg/sec

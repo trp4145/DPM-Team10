@@ -113,7 +113,7 @@ public class Main
         while (getTimeRemaining() > 20)
         {
             // search for blocks
-            searchForBlocks();
+            searchForBlocks(45, 90);
             
             // if there is an object in front of the robot, identify it
             float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
@@ -352,114 +352,111 @@ public class Main
     /**
      * Searches for blocks. Sweeps from current angle to +90 degrees, collects
      * data into a Map then analyzes that data and moves the robot accordingly.
+     * 
+     * @param searchDirection
+     *            the direction in degrees that the robot will center the sweep
+     *            around.
+     * @param searchWidth
+     *            how many degrees the sweep will cover.
      */
-    private void searchForBlocks()
+    private void searchForBlocks(float searchDirection, float searchWidth)
     {
-        int SCANNING_SPEED = 50;
-        float currentAngle;
-        float lastAngle;
-        float distance;
+        // turn to face the start angle of the sweep
+        float startAngle = Utils.normalizeAngle(searchDirection - (searchWidth / 2));
+        m_driver.turnTo(startAngle, Robot.ROTATE_SPEED, true);
+
+        // start turning the robot
+        m_driver.turn(searchWidth, Robot.SEARCH_SPEED, false);
+        
+        // take samples while turning
         Map<Float,Float> angleDistanceMap = new HashMap<Float,Float>();
-
-        // store current angle
-        currentAngle = m_odometer.getTheta();
-
-        // store angle where data gathering should stop
-        lastAngle = currentAngle + 90;
-
-        // turn the robot 90 degrees, ccw
-        m_driver.turn(90, SCANNING_SPEED, false);
-
-        // while the current angle hasn't reached +90, dont stop
-        while (currentAngle < lastAngle)
+        while (m_driver.isTravelling())
         {
-            distance = getDistanceMain();
-            currentAngle = m_odometer.getTheta();
-            angleDistanceMap.put(currentAngle, distance);
+            angleDistanceMap.put(m_odometer.getTheta(), getDistanceMain());
+            // prevents grabbing samples than they can be generated
+            Utils.sleep(UltrasonicPoller.UPDATE_PERIOD);
         }
 
         // analyze data
         analyze(angleDistanceMap);
     }
-    
+
     /**
-     * This method is called from the searchForBlocks method to 
-     * analyze the data it collected. 
+     * This method is called from the searchForBlocks method to analyze the data
+     * it collected.
      * 
-     * @param data: A Map containing all the measured angles and their
-     * corresponding distances.
+     * @param data
+     *            a map containing all the measured angles and their
+     *            corresponding distances.
      */
-    private void analyze(Map<Float, Float> data)
+    private void analyze(Map<Float,Float> data)
     {
         float currentAngle;
         float currentDistance;
         float previousAngle;
         float previousDistance;
-        float minDistanceGap = 10; // gap > minGap to be considered a discontinuity
+        float minDistanceGap = 10; // gap > minGap to be considered a
+                                   // discontinuity
         float absGap;
         int discontinuities = 0; // number of discontinuities
-        Map<Float, Float> sortedData = new TreeMap<Float, Float>(data);
-        Iterator<Map.Entry<Float, Float>> entries;
-        Map.Entry<Float, Float> entry;
-        Map<Float, Float> discontinuitiesMap = new HashMap<Float, Float>();
-         
-        
+        Map<Float,Float> sortedData = new TreeMap<Float,Float>(data);
+        Iterator<Map.Entry<Float,Float>> entries;
+        Map.Entry<Float,Float> entry;
+        Map<Float,Float> discontinuitiesMap = new HashMap<Float,Float>();
+
         // DEBUG
         // writes to file for debugging purposes
         writeToFile(sortedData, "sorted.txt");
-        
+
         // sanitized data
         // means no incorrect discontinuities are there
         // new Map passed by reference
-        Map<Float, Float> sanitizedData =  sanitize(sortedData);
-        
+        Map<Float,Float> sanitizedData = sanitize(sortedData);
+
         writeToFile(sanitizedData, "sanitized.txt");
-             
+
         // set the iterator to the sanitized data
         entries = sanitizedData.entrySet().iterator();
-        
-        
+
         // set previousAngle and previousDistance to first data point
-        entry = entries.next();    
+        entry = entries.next();
         previousAngle = entry.getKey();
-        previousDistance = entry.getValue(); 
-        
-        // need to sort the data in the hasmap. 
-        
+        previousDistance = entry.getValue();
+
+        // need to sort the data in the hasmap.
+
         // check for discontinuities
-        while(entries.hasNext())
+        while (entries.hasNext())
         {
             entry = entries.next();
             currentAngle = entry.getKey();
-            currentDistance = entry.getValue();  
-            
+            currentDistance = entry.getValue();
+
             absGap = Math.abs(currentDistance - previousDistance);
-            
+
             // if there is a discontinuity
             // increase the discontinuity counter
             // and store the data point on another Map
-            if(absGap > minDistanceGap)
+            if (absGap > minDistanceGap)
             {
                 discontinuities += 1;
                 discontinuitiesMap.put(currentAngle, currentDistance);
             }
-            
+
             // updating for next iteration
             previousAngle = currentAngle;
             previousDistance = currentDistance;
         }
-       
-        
-        
-        Map<Float, Float> sortedDiscontinuities = new TreeMap<Float, Float>(discontinuitiesMap);
-        
-        if(discontinuities == 0)
+
+        Map<Float,Float> sortedDiscontinuities = new TreeMap<Float,Float>(discontinuitiesMap);
+
+        if (discontinuities == 0)
         {
             Sound.buzz();
             noDiscontinuities(sortedData);
         }
-        else if(discontinuities == 1)
-        {    
+        else if (discontinuities == 1)
+        {
             Sound.beep();
             writeToFile(sortedDiscontinuities, "disc1.txt");
             oneDiscontinuity(sortedData, sortedDiscontinuities);
@@ -468,25 +465,26 @@ public class Main
         {
             Sound.twoBeeps();
             writeToFile(sortedDiscontinuities, "disc2.txt");
-            
-            if(moreThanOneBlock(sortedDiscontinuities))
+
+            if (moreThanOneBlock(sortedDiscontinuities))
             {
                 Sound.beepSequenceUp();
                 return;
             }
-            
+
             manyDiscontinuities(sortedDiscontinuities);
         }
     }
-    
+
     /**
      * This method removes any false positives from the data.
      * 
      * @param rawData
-     * @return cleaned up Map containing the angles and the distances
-     * recorded by the ultrasonic sensor. 
+     *            angles to distance map containing search data.
+     * @return the cleaned up map containing the angles and the distances
+     *         recorded by the ultrasonic sensor.
      */
-    private Map<Float, Float> sanitize(Map<Float, Float> rawData)
+    private Map<Float,Float> sanitize(Map<Float,Float> rawData)
     {
         float currentAngle;
         float currentDistance;
@@ -496,53 +494,50 @@ public class Main
         float minAngleGap = 8;
         float absDistanceGap;
         float minDistanceGap = 0;
-        Iterator<Map.Entry<Float, Float>> entries;
-        Map.Entry<Float, Float> entry;
-        
+        Iterator<Map.Entry<Float,Float>> entries;
+        Map.Entry<Float,Float> entry;
+
         // in case we can't modify a parameter
         // creating new reference
-        //Map<Float, Float> localRawData = new TreeMap<Float, Float>(rawData);
-        
-        // setting the discontinuities         
+        // Map<Float, Float> localRawData = new TreeMap<Float, Float>(rawData);
+
+        // setting the discontinuities
         entries = rawData.entrySet().iterator();
-        
+
         // set previousAngle and previousDistance to first data point
-        entry = entries.next();    
-        previousAngle = entry.getKey();   
+        entry = entries.next();
+        previousAngle = entry.getKey();
         previousDistance = entry.getValue();
-        
+
         // hardcoding 55 for the first value
         rawData.put(entry.getKey(), 55f);
         previousDistance = 55f;
-        
 
         // set m_discontinuityStartAngle to first angle
         m_discontinuityStartAngle = previousAngle;
-        
-        
+
         // check for discontinuities
-        while(entries.hasNext())
+        while (entries.hasNext())
         {
             entry = entries.next();
             currentAngle = entry.getKey();
-            currentDistance = entry.getValue();  
-            
+            currentDistance = entry.getValue();
+
             absDistanceGap = Math.abs(currentDistance - previousDistance);
-            
-            
-            if(absDistanceGap > minDistanceGap)
+
+            if (absDistanceGap > minDistanceGap)
             {
                 // so here we know the sensor detected something
                 // let's see what angle does it span
                 // if it's less than 8 degress, we change the data
                 // meaning at currentAngle, change distance
-                
+
                 // if 55 prev and now 30
                 // the discontinuity was detected at THIS angle
                 // so set m_start to this angle, ie currentAngle
-                if(!m_discontinuitySpotted) //if discon has been spotted
+                if (!m_discontinuitySpotted) // if discon has been spotted
                 {
-                    m_discontinuityStartAngle = currentAngle; 
+                    m_discontinuityStartAngle = currentAngle;
                     m_discontinuitySpotted = true;
 
                 }
@@ -550,151 +545,143 @@ public class Main
                 {
                     m_discontinuityEndAngle = currentAngle;
                     m_discontinuitySpotted = false;
-                    
+
                     angleGap = Math.abs(m_discontinuityEndAngle - m_discontinuityStartAngle);
-                    
+
                     writeDebug("Angle gap is: " + angleGap);
-                    
-                    if(angleGap < minAngleGap) //if we have a discontinuity lower than this, delete
+
+                    if (angleGap < minAngleGap) // if we have a discontinuity
+                                                // lower than this, delete
                     {
                         writeDebug("will delete from: " + m_discontinuityStartAngle + " to: " + m_discontinuityEndAngle);
-                        
+
                         // modifiying this reference
                         filterOutFalsePositives(rawData, m_discontinuityStartAngle, m_discontinuityEndAngle);
                     }
-                }        
+                }
             }
-            
+
             previousAngle = currentAngle;
             previousDistance = currentDistance;
-            
-            // if we are at the end of the data, add a 55 to make sure 
+
+            // if we are at the end of the data, add a 55 to make sure
             // that we spot a discontinuity in the case there's a block
-            // that is detected up until the end of the scan. 
-            if(!entries.hasNext())
+            // that is detected up until the end of the scan.
+            if (!entries.hasNext())
             {
                 rawData.put(currentAngle, 55f);
             }
-                
-                
         }
-        
         return rawData;
-        
     }
     
     /**
-     * This method checks if any discontinuities is covering more than
-     * a certain angle (80 for one block). If it is, it lets the any method 
-     * calling it know that there is more than one block around the robot. 
+     * This method checks if any discontinuities is covering more than a certain
+     * angle (80 for one block). If it is, it lets the any method calling it
+     * know that there is more than one block around the robot.
      * 
      * @param sortedDiscontinuities
-     * @return Wether there is more than one block in front of the robot. 
+     * @return Wether there is more than one block in front of the robot.
      */
-    private boolean moreThanOneBlock(Map<Float, Float> sortedDiscontinuities)
+    private boolean moreThanOneBlock(Map<Float,Float> sortedDiscontinuities)
     {
         float currentAngle;
         float previousAngle;
         float angleGap;
         float oneBlockAngle = 80;
-        Iterator<Map.Entry<Float, Float>> entries;
-        Map.Entry<Float, Float> entry;
-        
+        Iterator<Map.Entry<Float,Float>> entries;
+        Map.Entry<Float,Float> entry;
+
         entries = sortedDiscontinuities.entrySet().iterator();
-        
-        entry = entries.next();    
+
+        entry = entries.next();
         previousAngle = entry.getKey();
 
-        
-        while(entries.hasNext())
+        while (entries.hasNext())
         {
             entry = entries.next();
             currentAngle = entry.getKey();
-            
+
             angleGap = Math.abs(currentAngle - previousAngle);
-            
-            if(angleGap > oneBlockAngle)  
+
+            if (angleGap > oneBlockAngle)
             {
                 writeDebug("Detected two blocks. Abort.");
                 return true;
             }
-            
+
             // updating for next iteration
             previousAngle = currentAngle;
         }
-        
         return false;
     }
-    
+
     /**
-     * Method that iterates through the data from one angle to the
-     * other to remove any discontinuities in between. 
+     * Method that iterates through the data from one angle to the other to
+     * remove any discontinuities in between.
      * 
      * @param rawData
      * @param discontinuityStartAngle
      * @param discontinuityEndAngle
      */
-    private void filterOutFalsePositives(Map<Float, Float> rawData, float discontinuityStartAngle, float discontinuityEndAngle)
+    private void filterOutFalsePositives(Map<Float,Float> rawData, float discontinuityStartAngle, float discontinuityEndAngle)
     {
         float correctedDistance = 55f;
         float currentAngle;
-        float currentDistance;
-        
-        for(Map.Entry<Float, Float> entry : rawData.entrySet())
+
+        for (Map.Entry<Float,Float> entry : rawData.entrySet())
         {
             currentAngle = entry.getKey();
-            currentDistance = entry.getValue();
-            
+
             // do not include endAngle as it is the other discontinuity
-            if((currentAngle >= discontinuityStartAngle) && (currentAngle < discontinuityEndAngle))
+            if ((currentAngle >= discontinuityStartAngle) && (currentAngle < discontinuityEndAngle))
             {
                 rawData.put(currentAngle, correctedDistance);
-            }         
+            }
         }
     }
     
-    
     /**
-     * This method is to be called for analyzing a dataset containing
-     * no discontinuities.
+     * This method is to be called for analyzing a dataset containing no
+     * discontinuities.
      * 
-     * @param data : A Map containing all the angles and the distances
-     * for each of them. 
+     * @param data
+     *            a map containing all the angles and the distances for each
+     *            of them.
      */
-    private void noDiscontinuities(Map<Float, Float> data)
+    private void noDiscontinuities(Map<Float,Float> data)
     {
         float[] meanAngleDistance = getMeanAngleDistance(data);
-        
+
         float meanAngle = meanAngleDistance[0];
         float meanDistance = meanAngleDistance[1];
 
         Vector2 destination = Vector2.fromPolar(meanAngle, meanDistance - OFFSET);
-        
+
         // move robot to mean distance, at mean angle
-        m_driver.travelTo(destination, true); 
-        while (m_driver.isTravelling()) {}
+        m_driver.travelTo(destination, true);
     }
     
     /**
-     * This method is called when only one discontinuity is detected
-     * by the main ultrasonic sensor. 
+     * This method is called when only one discontinuity is detected by the main
+     * ultrasonic sensor.
      * 
-     * @param data : A map containing all the angles measured and their
-     * corresponding distances.
-     * @param discontinuitiesMap : A Map containing the only discontinuity
-     * found. 
+     * @param data
+     *            a map containing all the angles measured and their
+     *            corresponding distances.
+     * @param discontinuitiesMap
+     *            a map containing the only discontinuity found.
      */
-    private void oneDiscontinuity(Map<Float, Float> data, Map<Float, Float> discontinuitiesMap)
+    private void oneDiscontinuity(Map<Float,Float> data, Map<Float,Float> discontinuitiesMap)
     {
-        
         // partitioning data in 2, on either side of the single discontinuity
         float dividingAngle = discontinuitiesMap.keySet().iterator().next();
-        Map<Float, Float> partitionOne = new HashMap<Float, Float>();
-        Map<Float, Float> partitionTwo = new HashMap<Float, Float>();
-        
-        for(Map.Entry<Float, Float> entry : data.entrySet())
+        Map<Float,Float> partitionOne = new HashMap<Float,Float>();
+        Map<Float,Float> partitionTwo = new HashMap<Float,Float>();
+
+        for (Map.Entry<Float,Float> entry : data.entrySet())
         {
-            if(entry.getKey() < dividingAngle)
+            if (entry.getKey() < dividingAngle)
             {
                 partitionOne.put(entry.getKey(), entry.getValue());
             }
@@ -703,22 +690,22 @@ public class Main
                 partitionTwo.put(entry.getKey(), entry.getValue());
             }
         }
-        
+
         // get the mean angle and mean distance of each partitions
         // first eleement of the array is the angle, second is distance
         float[] meansPartitionOne = getMeanAngleDistance(partitionOne);
         float[] meansPartitionTwo = getMeanAngleDistance(partitionTwo);
-       
+
         float meanAnglePartitionOne = meansPartitionOne[0];
         float meanDistancePartitionOne = meansPartitionOne[1];
         float meanAnglePartitionTwo = meansPartitionTwo[0];
         float meanDistancePartitionTwo = meansPartitionTwo[1];
-        
+
         Vector2 destination;
-        
+
         // selecting the partition with the smaller average for the
         // distance measured
-        if(meanDistancePartitionOne < meanDistancePartitionTwo)
+        if (meanDistancePartitionOne < meanDistancePartitionTwo)
         {
             destination = Vector2.fromPolar(meanAnglePartitionOne, meanDistancePartitionOne - OFFSET);
         }
@@ -726,244 +713,217 @@ public class Main
         {
             destination = Vector2.fromPolar(meanAnglePartitionTwo, meanDistancePartitionTwo - OFFSET);
         }
-        
+
         m_driver.travelTo(destination, true);
-        while (m_driver.isTravelling()) {}
     }
     
     /**
-     * This method is called when the main ultrasonic sensor has
-     * detected more than one discontinuity. The robot will move towards
-     * the first blue block it detects.
+     * This method is called when the main ultrasonic sensor has detected more
+     * than one discontinuity. The robot will move towards the first blue block
+     * it detects.
      * 
-     * @param data : A Map that includes all the angles and the distances
-     * of the detected discontinuities.
-     * 
+     * @param data
+     *            a map that includes all the angles and the distances of the
+     *            detected discontinuities.
      */
-    private void manyDiscontinuities(Map<Float, Float> data)
+    private void manyDiscontinuities(Map<Float,Float> data)
     {
         float currentAngle;
         float currentDistance;
         float previousAngle;
         float previousDistance;
-        Iterator<Map.Entry<Float, Float>> entries;
-        Map.Entry<Float, Float> entry;
+        Iterator<Map.Entry<Float,Float>> entries;
+        Map.Entry<Float,Float> entry;
         float width;
-        ArrayList<Float> objectWidths = new ArrayList<Float>(); //delete later if not used
+        ArrayList<Float> objectWidths = new ArrayList<Float>(); // delete later
+                                                                // if not used
         float destinationAngle;
         float destinationDistance;
 
-        // An Iterator to iterate through all the discontinuities in the Map          
+        // An Iterator to iterate through all the discontinuities in the Map
         entries = data.entrySet().iterator();
-        
+
         // initialize the previous variables with first element on the Map
-        entry = entries.next();    
+        entry = entries.next();
         previousAngle = entry.getKey();
-        previousDistance = entry.getValue(); 
-        
-        
+        previousDistance = entry.getValue();
+
         // do while to go through the loop once in case there are only
         // 2 discontinuities in the Map
         do
         {
-            
             entry = entries.next();
             currentAngle = entry.getKey();
-            currentDistance = entry.getValue(); 
-            
+            currentDistance = entry.getValue();
 
-            //calculating widths and adding to the arraylist
+            // calculating widths and adding to the arraylist
             width = calculateWidth(previousAngle, previousDistance, currentAngle, currentDistance);
             objectWidths.add(width);
-            
+
             // TODO need a better width calculator
             // mb get some data and then calculate what could be considered
             // a block and what is more than than.
-            // for example, if width exceeds 100, then assume it's two blocks and do something else
+            // for example, if width exceeds 100, then assume it's two blocks
+            // and do something else
             // this could also be just checking the angle instead of the width
-            if(width < 120)
-            {   
+            if (width < 120)
+            {
                 // trying to aim for the middle of the block
-                destinationAngle = (currentAngle + previousAngle)/2.0f;
-                
-                // an offset might be needed here to not land on top of the block
-                destinationDistance = (currentDistance + previousDistance)/2.0f; 
-                
+                destinationAngle = (currentAngle + previousAngle) / 2.0f;
+
+                // an offset might be needed here to not land on top of the
+                // block
+                destinationDistance = (currentDistance + previousDistance) / 2.0f;
+
                 // DEBUG
                 writeDebug("Planning on traveling: " + destinationDistance);
-                
-                
-                // if it detects an object to close to it, abort search and 
+
+                // if it detects an object to close to it, abort search and
                 // relocate
-                if(destinationDistance < 16)
+                if (destinationDistance < 16)
                 {
                     Sound.beepSequenceUp();
                     break;
                 }
-                
+
                 m_driver.travelTo(Vector2.fromPolar(destinationAngle, destinationDistance - OFFSET), true);
-                while (m_driver.isTravelling()) {}
                 break;
-               
             }
-            
+
             // updating the previous variables for next iteration
             previousAngle = currentAngle;
             previousDistance = currentDistance;
         }
-        while(entries.hasNext());
-
-        
+        while (entries.hasNext());
     }
-    
+
     /**
      * This method calculates the width of a perceived object.
      * 
-     * @param angleA : angle of first edge of the perceived object
-     * @param distanceA : distance to the first edge of the perceived object
-     * @param angleB : angle of the second edge of the perceived object
-     * @param distanceB : distance to the second edge of the perceived object
-     * @return : the calculated width
+     * @param angleA
+     *            angle of first edge of the perceived object.
+     * @param distanceA
+     *            distance to the first edge of the perceived object.
+     * @param angleB
+     *            angle of the second edge of the perceived object.
+     * @param distanceB
+     *            distance to the second edge of the perceived object.
+     * @return the calculated width.
      */
     private float calculateWidth(float angleA, float distanceA, float angleB, float distanceB)
     {
-        float width;
-        float meanDistance;
-        float arcSize;
-        
-        meanDistance = (distanceA + distanceB)/2.0f;
-        arcSize = angleB - angleA;
-        
-        width = (float) (meanDistance * Math.sqrt(2*(1-Math.cos(arcSize))));
-        
-        return width;
+        float meanDistance = (distanceA + distanceB) / 2.0f;
+        float arcSize = Math.abs(Utils.toBearing(angleB - angleA));
+
+        return (float)(meanDistance * Math.sqrt(2 * (1 - Math.cos(arcSize))));
     }
-    
+
     /**
-     * This method calculates the average of all angles and all distances
-     * passed to it in a Map. 
+     * This method calculates the average of all angles and all distances passed
+     * to it in a Map.
      * 
-     * @param data : A Map containing angles as keys and distances as values.
-     * @return : The average of all the angles and all the distances that were
-     * on the Map in an array of size 2. The first element is the angle, distance is the 
-     * second. 
+     * @param data
+     *            a map containing angles as keys and distances as values.
+     * @return the average of all the angles and all the distances that were
+     *         on the map in an array of size 2. The first element is the angle,
+     *         distance is the second.
      */
-    private float[] getMeanAngleDistance(Map<Float, Float> data)
+    private float[] getMeanAngleDistance(Map<Float,Float> data)
     {
-        float meanDistance= 0;
+        float meanDistance = 0;
         float meanAngle = 0;
-        float dataSampleSize = data.size();
-    
-        for(Map.Entry<Float, Float> entry : data.entrySet())
+        
+        if (data.size() > 0)
         {
-            meanAngle += entry.getKey();
-            meanDistance += entry.getValue();         
+            for (Map.Entry<Float,Float> entry : data.entrySet())
+            {
+                meanAngle += entry.getKey();
+                meanDistance += entry.getValue();
+            }
+            meanDistance = meanDistance / data.size();
+            meanAngle = meanAngle / data.size();
         }
         
-        meanDistance = meanDistance/dataSampleSize;
-        meanAngle = meanAngle/dataSampleSize;
-        
-        float[] angleDistanceArray = {meanAngle, meanDistance};
-        
-        return angleDistanceArray;    
+        return new float[] { meanAngle, meanDistance };
     }
  
     /**
      * Wrapper to get the main ultrasonic sensor's instantaneous reading.
      * 
-     * NOTE: if the difference between the first value and the second is 
-     * higher than 8, then keep the previous value. otherwise go with the 
-     * newest value.
+     * NOTE: if the difference between the first value and the second is higher
+     * than 8, then keep the previous value. otherwise go with the newest value.
      * 
-     * @return : The distance detected by the ultrasonic sensor. 
+     * @return the distance detected by the ultrasonic sensor.
      */
     private float getDistanceMain()
     {   
-        float distance = m_usMain.getLastDistance();
-        float gap;
-        
-        if(distance > 55)
-        {
-            distance = 55;
-        }
-        
+        float distance = Math.min(m_usMain.getLastDistance(), 55);
+
         // if it's the first time running this method
         // intialize the previous distance as the current distance
-        if(!m_usHasStartedCollectingData)
+        if (!m_usHasStartedCollectingData)
         {
-            m_usHasStartedCollectingData = true; 
+            m_usHasStartedCollectingData = true;
             m_usPreviousDistance = distance;
-            
             return distance;
         }
         else
         {
-            // if the difference between the previous value 
-            // and the current value is less than 7f, keep the
-            // previous value
-            gap = Math.abs(distance - m_usPreviousDistance);
-   
-            if(gap < 10)
+            // if the difference between the previous value and the current
+            // value is less than 7f, keep the previous value
+            if (Math.abs(distance - m_usPreviousDistance) < 10)
             {
                 distance = m_usPreviousDistance;
             }
-            
-            // if the difference between the previous and the current
-            // value is greater, then keep distance as it is, but 
-            // update the previous distance;
             else
             {
+                // if the difference between the previous and the current value
+                // is greater, then keep distance as it is, but update the
+                // previous distance;
                 m_usPreviousDistance = distance;
             }
-            
-            return distance; 
+            return distance;
         }
-        
-    } 
-    
+    }
+
     /**
-     * This method writes to a file called the main ultrasonic sensor's 
-     * readings.
+     * This method writes a map to a file.
      * 
-     * @param data : Data gathered by the main ultrasonic sensor.
+     * @param data
+     *            a non-null map.
      */
-    private void writeToFile(Map<Float, Float> data, String filename)
+    private void writeToFile(Map<Float,Float> data, String filename)
     {
-        float angle;
-        float distance;
-        int index = 0;
-        
-        //Print output on to a txt file 
+        // Print output on to a txt file
         File file = new File(filename);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename)))
         {
-            if (!file.exists()){
+            if (!file.exists())
+            {
                 file.createNewFile();
             }
-            for(Map.Entry<Float, Float> entry : data.entrySet())
+            int index = 0;
+            for (Map.Entry<Float,Float> entry : data.entrySet())
             {
-                angle = entry.getKey();
-                distance = entry.getValue();  
-                writer.write(index + "\t" + String.format("%.1f", angle) + "\t" + String.format("%.1f", distance) + "\n");
-                index += 1;
-            }            
-
-        }catch (IOException e){
+                writer.write(index + "\t" + String.format("%.1f", entry.getKey()) + "\t" + String.format("%.1f", entry.getValue()) + "\n");
+                index++;
+            }
+        }
+        catch (IOException e)
+        {
             System.out.println(e.getMessage());
-        }  
+        }
     }
     
-    
-
     /**
-     * Method for writing to a debug file 
-     * debug metrics. Appends to same file.
+     * Method for writing to a debug file. Appends to same file.
      * 
-     * @param data Any string.
+     * @param data
+     *            any string.
      */
     private static void writeDebug(String data)
     {
-        //Print output on to a txt file 
+        // Print output on to a txt file
         File file = new File("Debug.txt");
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("Debug.txt", true)))
         {
@@ -971,12 +931,12 @@ public class Main
             {
                 file.createNewFile();
             }
-            
-            writer.write(data + "\n");   
+
+            writer.write(data + "\n");
         }
         catch (IOException e)
         {
             System.out.println(e.getMessage());
-        }  
+        }
     }
 }
