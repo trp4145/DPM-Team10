@@ -41,7 +41,7 @@ public class Main
     private long m_startTime;
     
     // search algorithm
-    private static final float OFFSET = 8; // to give enough space for the robot to turn around
+    private static final float OFFSET = 30; // to give enough space for the robot to turn around
     private float m_usPreviousDistance = 0;
     private boolean m_usHasStartedCollectingData = false;
     private float m_discontinuityStartAngle = 0;
@@ -395,7 +395,7 @@ public class Main
         float currentDistance;
         float previousAngle;
         float previousDistance;
-        float minDistanceGap = 15; // gap > minGap to be considered a discontinuity
+        float minDistanceGap = 10; // gap > minGap to be considered a discontinuity
         float absGap;
         int discontinuities = 0; // number of discontinuities
         Map<Float, Float> sortedData = new TreeMap<Float, Float>(data);
@@ -468,6 +468,13 @@ public class Main
         {
             Sound.twoBeeps();
             writeToFile(sortedDiscontinuities, "disc2.txt");
+            
+            if(moreThanOneBlock(sortedDiscontinuities))
+            {
+                Sound.beepSequenceUp();
+                return;
+            }
+            
             manyDiscontinuities(sortedDiscontinuities);
         }
     }
@@ -514,7 +521,6 @@ public class Main
         
         
         // check for discontinuities
-//        loop:
         while(entries.hasNext())
         {
             entry = entries.next();
@@ -523,13 +529,6 @@ public class Main
             
             absDistanceGap = Math.abs(currentDistance - previousDistance);
             
-            // some optimization
-//            if(Math.abs(currentAngle - m_discontinuityStartAngle) > 8)
-//            {
-//                m_discontinuityStartAngle = currentAngle;
-//                m_discontinuitySpotted = false;
-//                continue loop;
-//            }
             
             if(absDistanceGap > minDistanceGap)
             {
@@ -568,10 +567,63 @@ public class Main
             
             previousAngle = currentAngle;
             previousDistance = currentDistance;
+            
+            // if we are at the end of the data, add a 55 to make sure 
+            // that we spot a discontinuity in the case there's a block
+            // that is detected up until the end of the scan. 
+            if(!entries.hasNext())
+            {
+                rawData.put(currentAngle, 55f);
+            }
+                
+                
         }
         
         return rawData;
         
+    }
+    
+    /**
+     * This method checks if any discontinuities is covering more than
+     * a certain angle (80 for one block). If it is, it lets the any method 
+     * calling it know that there is more than one block around the robot. 
+     * 
+     * @param sortedDiscontinuities
+     * @return Wether there is more than one block in front of the robot. 
+     */
+    private boolean moreThanOneBlock(Map<Float, Float> sortedDiscontinuities)
+    {
+        float currentAngle;
+        float previousAngle;
+        float angleGap;
+        float oneBlockAngle = 80;
+        Iterator<Map.Entry<Float, Float>> entries;
+        Map.Entry<Float, Float> entry;
+        
+        entries = sortedDiscontinuities.entrySet().iterator();
+        
+        entry = entries.next();    
+        previousAngle = entry.getKey();
+
+        
+        while(entries.hasNext())
+        {
+            entry = entries.next();
+            currentAngle = entry.getKey();
+            
+            angleGap = Math.abs(currentAngle - previousAngle);
+            
+            if(angleGap > oneBlockAngle)  
+            {
+                writeDebug("Detected two blocks. Abort.");
+                return true;
+            }
+            
+            // updating for next iteration
+            previousAngle = currentAngle;
+        }
+        
+        return false;
     }
     
     /**
@@ -593,7 +645,7 @@ public class Main
             currentAngle = entry.getKey();
             currentDistance = entry.getValue();
             
-            // do not include endangle as it is the other discontinuity
+            // do not include endAngle as it is the other discontinuity
             if((currentAngle >= discontinuityStartAngle) && (currentAngle < discontinuityEndAngle))
             {
                 rawData.put(currentAngle, correctedDistance);
@@ -737,6 +789,18 @@ public class Main
                 // an offset might be needed here to not land on top of the block
                 destinationDistance = (currentDistance + previousDistance)/2.0f; 
                 
+                // DEBUG
+                writeDebug("Planning on traveling: " + destinationDistance);
+                
+                
+                // if it detects an object to close to it, abort search and 
+                // relocate
+                if(destinationDistance < 16)
+                {
+                    Sound.beepSequenceUp();
+                    break;
+                }
+                
                 m_driver.travelTo(Vector2.fromPolar(destinationAngle, destinationDistance - OFFSET), true);
                 while (m_driver.isTravelling()) {}
                 break;
@@ -839,7 +903,7 @@ public class Main
             // previous value
             gap = Math.abs(distance - m_usPreviousDistance);
    
-            if(gap < 15)
+            if(gap < 10)
             {
                 distance = m_usPreviousDistance;
             }
