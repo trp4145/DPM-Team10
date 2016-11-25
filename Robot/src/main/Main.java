@@ -22,9 +22,11 @@ public class Main
     // number of blocks the the robot will try to stack before dropping them off
     private static final int BLOCK_STACK_SIZE = 1;
     // the distance in cm ahead of the robot in which obstacles are seen 
-    private static final float OBSTACLE_DISTANCE = 6;
+    private static final float OBSTACLE_DISTANCE = 7.5f;
     // the distance in cm the robot moves to either side of an obstacle when trying to avoid it
-    private static final float AVOID_DISTANCE = 30;
+    private static final float AVOID_DISTANCE = 40;
+    // how much error is allowed between the odometer position and destination position.
+    private static final float POSITION_TOLERANCE = 2.0f;
     
     private StartParameters m_startParams;
     private Board m_board;
@@ -107,57 +109,41 @@ public class Main
         // initialize the claw
         m_blockManager.initializeClaw();
 
-        // temp block search
-        m_driver.turn(90, Robot.ROTATE_SPEED / 3, false);
-        while (m_usMain.getFilteredDistance() > 80) {}
-        Utils.sleep(1625);
-        m_driver.stop();
-        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
-
-        float checkDistance = 5f + Robot.RADIUS;
-        m_driver.goForward(blockDistance - checkDistance, true);
-        m_driver.turn(-90, Robot.ROTATE_SPEED, true);
-        boolean isBlueBlock = m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY() > (checkDistance + 10);
-        m_driver.turn(90, Robot.ROTATE_SPEED, true);
-        if (isBlueBlock)
+        // main logic loop
+        while (getTimeRemaining() > 20)
         {
-            Sound.buzz();
-            m_driver.goForward(checkDistance - 8, true);
-            m_blockManager.captureBlock();
-        }
-        else
-        {
-            Sound.twoBeeps();
-        }
-        Utils.sleep(500);
-        
-        m_driver.travelTo(m_board.getBuildZoneCenter(), true);
+            // search for blocks
+            searchForBlocks();
+            
+            // if there is an object in front of the robot, identify it
+            float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
+            if (blockDistance < Robot.RADIUS + 20)
+            {
+                // identify the block in front of the robot
+                m_driver.turn(-90, Robot.ROTATE_SPEED, true);
+                boolean isBlueBlock = m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY() > blockDistance + 10;
+                m_driver.turn(90, Robot.ROTATE_SPEED, true);
+                
+                // if a blue block, grab hold of it
+                if (isBlueBlock)
+                {
+                    Sound.beepSequenceUp();
+                    m_driver.goForward(blockDistance - Robot.US_MAIN_OFFSET.getX(), true);
+                    m_blockManager.captureBlock();
+                }
+            }
 
-        if (m_blockManager.getBlockCount() > 0)
-        {
-            m_blockManager.releaseBlock();
-        }
-
-        Utils.sleep(500);
-
-        // drop off any held blocks once we have enough
-        if (m_blockManager.getBlockCount() >= BLOCK_STACK_SIZE)
-        {
-            // move to the appropriate zone
-            moveWhileAvoiding(m_startParams.isBuilder() ? m_board.getBuildZoneCenter() : m_board.getDumpZoneCenter());
-            m_blockManager.releaseBlock();
+            // drop off any held blocks once we have enough
+            if (m_blockManager.getBlockCount() >= BLOCK_STACK_SIZE)
+            {
+                // move to the appropriate zone
+                moveWhileAvoiding(m_startParams.isBuilder() ? m_board.getBuildZoneCenter() : m_board.getDumpZoneCenter(), POSITION_TOLERANCE);
+                m_blockManager.releaseBlock();
+            }
         }
         
         // we must move back to the start corner before the end of the match
-        moveWhileAvoiding(m_board.getStartPos());
-		
-        // Uncomment for search algo
-        // The algo currently assumes it is at 0 degrees, at position (0,0)
-        // It will drive towards the block it sees.
-        
-        //m_odometer.setPosition(Vector2.zero());
-        //m_odometer.setTheta(0);
-        //searchForBlocks();
+        moveWhileAvoiding(m_board.getStartPos(), POSITION_TOLERANCE);
         
         // finish
         System.exit(0);
@@ -247,7 +233,7 @@ public class Main
         if (moveToOrigin)
         {
             m_driver.travelTo(Board.getNearestIntersection(m_odometer.getPosition()), true);
-            m_driver.turnTo(cornerAngOffset - 90, true);
+            m_driver.turnTo(cornerAngOffset - 90, Robot.ROTATE_SPEED, true);
         }
     }
 
@@ -256,22 +242,44 @@ public class Main
      * 
      * @param position
      *            the destination point.
+     * @param positionTolerance
+     *            the distance under which the robot must be to the given
+     *            position before returning.
      */
-    private void moveWhileAvoiding(Vector2 position)
+    private void moveWhileAvoiding(Vector2 position, float positionTolerance)
     {
-        m_driver.setDestination(position);
-        while (!m_driver.isNearDestination())
+        while (Vector2.distance(m_odometer.getPosition(), position) > positionTolerance)
         {
-            m_driver.travelTo(position, false);
-            while ( m_driver.isTravelling() &&
-                    m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX() > Robot.RADIUS + OBSTACLE_DISTANCE
-                    ) {}
-            if (m_driver.isTravelling() && Vector2.distance(position, m_odometer.getPosition()) > OBSTACLE_DISTANCE)
+            if (moveUntilObstacle(position))
             {
-                m_driver.stop();
                 avoidObstacle();
             }
         }
+    }
+
+    /**
+     * Tries to move the robot to a given position, but stops if an obstacle is
+     * encountered.
+     * 
+     * @param position
+     *            the destination point.
+     * @returns true if the robot has stopped before an obstacle.
+     */
+    private boolean moveUntilObstacle(Vector2 position)
+    {
+        m_driver.turnTo(Vector2.subtract(position, m_odometer.getPosition()).angle(), Robot.ROTATE_SPEED, true);
+        Utils.sleep(50);
+        m_driver.goForward(Vector2.distance(m_odometer.getPosition(), position), false);
+        
+        while ( m_driver.isTravelling() &&
+                m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX() > Robot.RADIUS + OBSTACLE_DISTANCE
+                ) {}
+        if (m_driver.isTravelling() && Vector2.distance(position, m_odometer.getPosition()) > OBSTACLE_DISTANCE)
+        {
+            m_driver.stop();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -282,29 +290,39 @@ public class Main
     {
         // check if there is no obstacle nearby on the left using the left ultrasound sensor
         // also check if the avoidance detour will cross into a invalid position
-        Vector2 leftAvoidWaypoint = m_odometer.toWorldSpace(new Vector2(0, AVOID_DISTANCE));
-        Vector2 rightAvoidWaypoint = m_odometer.toWorldSpace(new Vector2(0, -AVOID_DISTANCE));
+        Vector2 leftAvoidWaypoint1 = m_odometer.toWorldSpace(new Vector2(0, AVOID_DISTANCE));
+        Vector2 leftAvoidWaypoint2 = m_odometer.toWorldSpace(new Vector2(AVOID_DISTANCE, AVOID_DISTANCE));
+        Vector2 rightAvoidWaypoint1 = m_odometer.toWorldSpace(new Vector2(0, -AVOID_DISTANCE));
+        Vector2 rightAvoidWaypoint2 = m_odometer.toWorldSpace(new Vector2(AVOID_DISTANCE, -AVOID_DISTANCE));
 
+        Vector2 detour1;
+        Vector2 detour2;
+        
         float leftDistance = m_usUpper.getFilteredDistance() + Robot.US_UPPER_OFFSET.getY();
-        if (leftDistance > Robot.RADIUS + AVOID_DISTANCE && checkValidity(leftAvoidWaypoint))
+        if (leftDistance > Robot.RADIUS + AVOID_DISTANCE && checkValidity(leftAvoidWaypoint1))
         {
-            m_driver.travelTo(leftAvoidWaypoint, true);
+            detour1 = leftAvoidWaypoint1;
+            detour2 = leftAvoidWaypoint2;
         }
         else
         {
             // if the left way around is invalid, try looking right at check if it is clear
             m_driver.turn(-90, Robot.ROTATE_SPEED, true);
+            detour1 = rightAvoidWaypoint1;
+            detour2 = rightAvoidWaypoint2;
 
             float rightDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
-            if (rightDistance > Robot.RADIUS + AVOID_DISTANCE && checkValidity(rightAvoidWaypoint))
+            // if both left and right direction are not clear, pick the better bet
+            if (!(rightDistance > Robot.RADIUS + AVOID_DISTANCE && checkValidity(rightAvoidWaypoint1)) && leftDistance > rightDistance)
             {
-                m_driver.goForward(AVOID_DISTANCE, true);
+                detour1 = leftAvoidWaypoint1;
+                detour2 = leftAvoidWaypoint2;
             }
-            else if (leftDistance > rightDistance) // if both invalid, pick the better bet
-            {
-                m_driver.turn(180, Robot.ROTATE_SPEED, true);
-                m_driver.goForward(AVOID_DISTANCE, true);
-            }
+        }
+        
+        if (!moveUntilObstacle(detour1))
+        {            
+            moveUntilObstacle(detour2);
         }
     }
 
@@ -328,13 +346,12 @@ public class Main
      */
     private float getTimeRemaining()
     {
-        return (System.currentTimeMillis() - m_startTime) / 1000f;
+        return MATCH_DURATION - ((System.currentTimeMillis() - m_startTime) / 1000f);
     }
     
     /**
-     * Searches for blocks. Sweeps from current angle to +90 degrees,
-     * collects data into a Map then analyzes that data and moves the robot
-     * accordingly.
+     * Searches for blocks. Sweeps from current angle to +90 degrees, collects
+     * data into a Map then analyzes that data and moves the robot accordingly.
      */
     private void searchForBlocks()
     {
@@ -342,30 +359,27 @@ public class Main
         float currentAngle;
         float lastAngle;
         float distance;
-        Map<Float, Float> angleDistanceMap = new HashMap<Float, Float>();   
-        
+        Map<Float,Float> angleDistanceMap = new HashMap<Float,Float>();
+
         // store current angle
         currentAngle = m_odometer.getTheta();
-        
+
         // store angle where data gathering should stop
         lastAngle = currentAngle + 90;
-        
+
         // turn the robot 90 degrees, ccw
         m_driver.turn(90, SCANNING_SPEED, false);
-        
-        // while the current angle hasn't reached +90, dont stop 
-        while(currentAngle < lastAngle)
+
+        // while the current angle hasn't reached +90, dont stop
+        while (currentAngle < lastAngle)
         {
             distance = getDistanceMain();
             currentAngle = m_odometer.getTheta();
             angleDistanceMap.put(currentAngle, distance);
         }
-        
-        
-        
+
         // analyze data
         analyze(angleDistanceMap);
-
     }
     
     /**
