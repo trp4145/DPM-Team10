@@ -238,23 +238,6 @@ public class Vector2
     {
         return Vector2.subtract(v2, v1).magnitude();
     }
-    
-    /**
-     * Calculate the smallest angle between two vectors
-     * @param v1
-     * 				a vector
-     * @param v2
-     * 				a vector
-     * @return the angle between two vectors (in degrees)
-     */
-    public static float angleBetweenVectors(Vector2 v1, Vector2 v2){
-    	float ans  = v1.getX()*v2.getX()+v1.getY()*v2.getY();
-    	ans/= (v1.magnitude()*v2.magnitude());
-    	return (float)Math.toDegrees(Math.acos((double)ans));
-    	
-    }
-    
-    
 
     /**
      * Creates a new vector from a set of polar coordinates.

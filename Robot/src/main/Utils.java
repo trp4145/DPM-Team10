@@ -47,11 +47,21 @@ public class Utils
      */
     public static float toBearing(float angle)
     {
-        while (angle < 0)
-        {
-            angle += 360;
-        }
-        return (((angle + 540) % 360) - 180);
+        return (((normalizeAngle(angle) + 180) % 360) - 180);
+    }
+
+    /**
+     * Calculate the smallest angle between two vectors.
+     * 
+     * @param v1
+     *            a vector.
+     * @param v2
+     *            a vector.
+     * @return the angle from v1 to v2 in degrees.
+     */
+    public static float toBearing(Vector2 v1, Vector2 v2)
+    {
+        return toBearing(v2.angle() - v1.angle());
     }
 
     /**

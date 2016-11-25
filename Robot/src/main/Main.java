@@ -15,7 +15,6 @@ import lejos.hardware.Sound;
  */
 public class Main
 {
-
     // the duration of the match in seconds
     private static final long MATCH_DURATION = 5 * 60;
     // how far the robot sees while localizing in cm
@@ -37,16 +36,16 @@ public class Main
     private HeldBlockManager m_blockManager;
     private Display m_display;
     
+    private long m_startTime;
+    
     // search algorithm
-    private float m_usPreviousDistance;
-    private boolean m_usHasStartedCollectingData = false;
     private static final float OFFSET = 8; // to give enough space for the robot to turn around
-    private float m_discontinuityStartAngle;
-    private float m_discontinuityEndAngle;
+    private float m_usPreviousDistance = 0;
+    private boolean m_usHasStartedCollectingData = false;
+    private float m_discontinuityStartAngle = 0;
+    private float m_discontinuityEndAngle = 0;
     private boolean  m_discontinuitySpotted = false;
 
-
-    private long m_startTime;
     
     /**
      * Launches the main program.
@@ -84,7 +83,7 @@ public class Main
         }
         else
         {
-        	m_startParams.useTestData();
+            m_startParams.useTestData();
         }
         
         // record the starting time
@@ -98,23 +97,22 @@ public class Main
         m_usUpper.start();
         m_odometer.start();
         m_display.start();
-                
+
         // localize
         localize(true);
-        
-        
+
         // start odometry correction now that localization is done
         m_odoCorrection.start();
-        
-        //initialize the claw 
+
+        // initialize the claw
         m_blockManager.initializeClaw();
-        
+
         // temp block search
         m_driver.turn(90, Robot.ROTATE_SPEED / 3, false);
         while (m_usMain.getFilteredDistance() > 80) {}
         Utils.sleep(1625);
         m_driver.stop();
-        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();   
+        float blockDistance = m_usMain.getFilteredDistance() + Robot.US_MAIN_OFFSET.getX();
 
         float checkDistance = 5f + Robot.RADIUS;
         m_driver.goForward(blockDistance - checkDistance, true);
